@@ -1,0 +1,6 @@
+{
+  "name": "Vitrin Digital Menu Prototype",
+  "description": "Brand-driven, mobile-first digital menu experience with smooth Hero-to-Menu transitions and 3 distinct theme presentations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
