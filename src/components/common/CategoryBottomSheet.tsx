@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, Check, ChevronLeft, Sparkles } from 'lucide-react';
 import { MenuCategory, MenuItem } from '../../types/menu';
 import { toPersianDigits } from '../../utils/formatters';
+import { useMenuViewport } from '../../context/MenuViewportContext';
 
 interface CategoryBottomSheetProps {
   isOpen: boolean;
@@ -23,11 +24,23 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
   onSelectCategory,
   accentColor = '#d4af37',
 }) => {
+  const { registerOverlay } = useMenuViewport();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    return registerOverlay('category-bottom-sheet');
+  }, [isOpen, registerOverlay]);
+
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto" dir="rtl">
+      <div
+        className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto"
+        dir="rtl"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -44,7 +57,7 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-          className="relative w-full max-w-lg bg-neutral-900 border-t border-neutral-800 rounded-t-3xl p-5 max-h-[82vh] overflow-y-auto no-scrollbar shadow-2xl z-10 text-neutral-100 flex flex-col"
+          className="relative w-full max-w-lg bg-neutral-900 border-t border-neutral-800 rounded-t-3xl p-5 max-h-[82vh] overflow-y-auto overscroll-contain no-scrollbar shadow-2xl z-10 text-neutral-100 flex flex-col"
         >
           {/* Pull Handle */}
           <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-4" />

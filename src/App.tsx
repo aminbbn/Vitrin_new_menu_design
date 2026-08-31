@@ -89,7 +89,7 @@ export default function App() {
                 showDecorations={true}
               >
                 <ThemeRenderer
-                  key={`${currentTheme}-${currentState}`}
+                  key={currentTheme}
                   themeId={currentTheme}
                   restaurant={mockRestaurantData}
                   config={activeConfig}
@@ -111,7 +111,7 @@ export default function App() {
               showDecorations={true}
             >
               <ThemeRenderer
-                key={`${currentTheme}-${currentState}`}
+                key={currentTheme}
                 themeId={currentTheme}
                 restaurant={mockRestaurantData}
                 config={activeConfig}

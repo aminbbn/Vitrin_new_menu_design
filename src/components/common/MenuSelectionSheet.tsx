@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Trash2, ShoppingBag, Info, RotateCcw } from 'lucide-react';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
 import { formatToman, toPersianDigits } from '../../utils/formatters';
+import { useMenuViewport } from '../../context/MenuViewportContext';
 
 interface MenuSelectionSheetProps {
   accentColor?: string;
@@ -23,11 +24,23 @@ export const MenuSelectionSheet: React.FC<MenuSelectionSheetProps> = ({
     setIsSelectionSheetOpen,
   } = useMenuSelection();
 
+  const { registerOverlay } = useMenuViewport();
+
+  useEffect(() => {
+    if (!isSelectionSheetOpen) return;
+    return registerOverlay('menu-selection-sheet');
+  }, [isSelectionSheetOpen, registerOverlay]);
+
   if (!isSelectionSheetOpen) return null;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto" dir="rtl">
+      <div
+        className="fixed inset-0 z-50 flex items-end justify-center pointer-events-auto"
+        dir="rtl"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -44,7 +57,7 @@ export const MenuSelectionSheet: React.FC<MenuSelectionSheetProps> = ({
           animate={{ y: 0 }}
           exit={{ y: '100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-          className="relative w-full max-w-lg bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[88vh] overflow-hidden shadow-2xl z-10 text-neutral-100 flex flex-col"
+          className="relative w-full max-w-lg bg-neutral-900 border-t border-neutral-800 rounded-t-3xl max-h-[88vh] overflow-hidden shadow-2xl z-10 text-neutral-100 flex flex-col overscroll-contain"
         >
           {/* Top Handle */}
           <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mt-3 mb-1" />

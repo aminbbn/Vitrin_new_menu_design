@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Clock, Phone, Wifi, Instagram, Compass, ExternalLink } from 'lucide-react';
 import { RestaurantData } from '../../types/menu';
 import { toPersianDigits } from '../../utils/formatters';
+import { useMenuViewport } from '../../context/MenuViewportContext';
 
 interface RestaurantInfoModalProps {
   restaurant: RestaurantData;
@@ -17,11 +18,23 @@ export const RestaurantInfoModal: React.FC<RestaurantInfoModalProps> = ({
   onClose,
   accentColor = '#d4af37',
 }) => {
+  const { registerOverlay } = useMenuViewport();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    return registerOverlay('restaurant-info-modal');
+  }, [isOpen, registerOverlay]);
+
   if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-auto">
+      <div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-auto"
+        dir="rtl"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -35,7 +48,7 @@ export const RestaurantInfoModal: React.FC<RestaurantInfoModalProps> = ({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="relative w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-t-3xl sm:rounded-3xl max-h-[85vh] overflow-y-auto no-scrollbar shadow-2xl z-10 text-neutral-100 p-6 space-y-6"
+          className="relative w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-t-3xl sm:rounded-3xl max-h-[85vh] overflow-y-auto overscroll-contain no-scrollbar shadow-2xl z-10 text-neutral-100 p-6 space-y-6"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-neutral-800 pb-4">

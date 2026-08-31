@@ -21,7 +21,10 @@ import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
 import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
+import { AmbientBackground } from '../../common/AmbientBackground';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
+import { useMenuViewport } from '../../../context/MenuViewportContext';
+import { useHeroTransition } from '../../../hooks/useHeroTransition';
 
 interface ImmersiveThemeProps {
   restaurant: RestaurantData;
@@ -38,7 +41,15 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
   onStateChange,
   isDashboardPreview = false,
 }) => {
-  const [viewState, setViewState] = useState<'hero' | 'menu'>(initialState);
+  const transitionDuration = (config.hero?.transitionDurationMs || 750) / 1000;
+  const { viewState, isMenuMode, enterMenu, returnToHero } = useHeroTransition({
+    initialState,
+    onStateChange,
+    transitionDurationMs: config.hero?.transitionDurationMs || 750,
+  });
+
+  const { getScrollContainer, scrollToElement } = useMenuViewport();
+
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
@@ -48,31 +59,9 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync external state changes
-  useEffect(() => {
-    if (initialState !== viewState) {
-      setViewState(initialState);
-    }
-  }, [initialState]);
-
-  const handleEnterMenu = () => {
-    setViewState('menu');
-    onStateChange?.('menu');
-  };
-
-  const handleResetToHero = () => {
-    setViewState('hero');
-    onStateChange?.('hero');
-    const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
-    if (viewport) {
-      viewport.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   // Category Intersection Observer for scroll tracking
   useEffect(() => {
-    if (viewState !== 'menu') return;
+    if (!isMenuMode) return;
 
     const observerCallback: IntersectionObserverCallback = (entries) => {
       entries.forEach((entry) => {
@@ -85,8 +74,9 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       });
     };
 
+    const container = getScrollContainer();
     const observer = new IntersectionObserver(observerCallback, {
-      root: document.getElementById('device-screen-viewport'),
+      root: container === window ? null : (container as HTMLElement),
       rootMargin: '-80px 0px -60% 0px',
       threshold: 0.1,
     });
@@ -97,14 +87,11 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
     });
 
     return () => observer.disconnect();
-  }, [viewState, restaurant.categories]);
+  }, [isMenuMode, restaurant.categories, getScrollContainer]);
 
   const handleCategoryClick = (catId: string) => {
     setActiveCategory(catId);
-    const target = document.getElementById(`cat-section-${catId}`);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    scrollToElement(`cat-section-${catId}`, 75);
   };
 
   const filteredItems = restaurant.items.filter((item) => {
@@ -120,19 +107,19 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
   const featuredItems = restaurant.items.filter((item) => item.isFeatured);
   const activeCategoryObj = restaurant.categories.find((c) => c.id === activeCategory);
 
-  const transitionDuration = (config.hero?.transitionDurationMs || 750) / 1000;
-  const isMenuMode = viewState === 'menu';
-
   return (
     <div
       ref={containerRef}
       dir="rtl"
-      className="min-h-screen bg-[#090d12] text-neutral-100 font-sans relative selection:bg-amber-500/20"
+      className="min-h-screen bg-[#070b0e] text-neutral-100 font-sans relative selection:bg-amber-500/20"
       style={{
-        backgroundColor: config.bgColor,
+        backgroundColor: config.bgColor || '#070b0e',
         color: config.textColor,
       }}
     >
+      {/* Ambient Animated Atmospheric Glow Layer */}
+      <AmbientBackground theme="immersive" accentColor={config.accentColor} />
+
       {/* ------------------------------------------------------------------ */}
       {/* 1. CONTINUOUS HERO SURFACE (Moves upward like a curtain/shutter)    */}
       {/* ------------------------------------------------------------------ */}
@@ -140,13 +127,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         layout
         initial={false}
         animate={{
-          height: isMenuMode ? '250px' : '100svh',
+          height: isMenuMode ? '250px' : 'var(--menu-viewport-height, 100dvh)',
         }}
         transition={{
           duration: transitionDuration,
           ease: [0.22, 1, 0.36, 1], // Smooth weighted physical easing
         }}
-        className="relative w-full overflow-hidden flex flex-col justify-between"
+        className="relative z-10 w-full overflow-hidden flex flex-col justify-between"
       >
         {/* Continuous Photographic Background Layer (Always the same image, cropped smoothly) */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -190,7 +177,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                onClick={handleResetToHero}
+                onClick={returnToHero}
                 id="hero-reset-intro-btn"
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 hover:bg-neutral-800 text-amber-300 text-xs font-semibold border border-amber-500/30 backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-lg"
                 title="مشاهده صفحه معرفی"
@@ -257,21 +244,22 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                 </div>
               </div>
 
-              {/* Primary Call to Action Button */}
+              {/* Primary Call to Action Button with Tactile Feedback */}
               <div className="w-full max-w-xs pt-3">
-                <button
-                  onClick={handleEnterMenu}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => enterMenu('cta')}
                   id="enter-menu-hero-btn"
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-base shadow-[0_12px_32px_rgba(212,175,55,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group cursor-pointer"
                 >
                   <span>{config.hero.ctaText}</span>
                   <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
-                </button>
+                </motion.button>
               </div>
 
               {/* Hint */}
               <div className="text-neutral-400 text-xs font-light">
-                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس کنید
+                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
               </div>
             </motion.div>
           )}
@@ -541,7 +529,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* Subcomponent: Featured Editorial Card                                      */
+/* Subcomponent: Featured Editorial Card (Theme 01: Discover First)           */
 /* -------------------------------------------------------------------------- */
 interface ItemCardProps {
   item: MenuItem;
@@ -560,52 +548,81 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
       whileTap={{ scale: 0.98 }}
       onClick={() => onSelect(item)}
       id={`item-featured-${item.id}`}
-      className="relative bg-gradient-to-b from-[#161f2b] to-[#0f1722] rounded-2xl overflow-hidden border border-neutral-800/80 shadow-xl cursor-pointer flex flex-col group"
+      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-col group ${
+        quantity > 0
+          ? 'border-amber-500/40 shadow-[0_8px_30px_rgba(212,175,55,0.14)]'
+          : 'border-neutral-800/80 hover:border-neutral-700/80'
+      } ${isSoldOut ? 'opacity-70' : ''}`}
     >
-      <div className="relative w-full h-44 bg-neutral-950 overflow-hidden">
+      {/* 55-70% Dominant Food Photography with Smooth Editorial Gradient */}
+      <div className="relative w-full h-48 sm:h-56 bg-neutral-950 overflow-hidden">
         <img
           src={item.image}
           alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out ${
+            isSoldOut ? 'grayscale contrast-75' : ''
+          }`}
+          loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#161f2b] via-transparent to-black/30" />
+        {/* Soft Multi-Stage Image-to-Content Blend Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d141f] via-[#0d141f]/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent opacity-60" />
 
-        {/* Badge */}
+        {/* Featured / Signature Badge */}
         {item.badge && (
           <span
             style={{ backgroundColor: accentColor, color: '#000' }}
-            className="absolute top-3 right-3 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1"
+            className="absolute top-3 right-3 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 backdrop-blur-sm"
           >
-            <Sparkles className="w-3 h-3" />
-            {item.badge}
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{item.badge}</span>
           </span>
         )}
 
+        {item.isVegetarian && !item.badge && (
+          <span className="absolute top-3 right-3 text-[10px] font-bold text-emerald-300 bg-emerald-950/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-500/30">
+            وجترین
+          </span>
+        )}
+
+        {/* Sold Out Overlay */}
         {isSoldOut && (
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-rose-900/80 text-rose-200 text-xs font-semibold px-3 py-1 rounded-full border border-rose-700">
-              اتمام موجودی امروز
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-neutral-900/90 text-neutral-300 text-xs font-bold px-3.5 py-1.5 rounded-full border border-neutral-700 shadow-xl">
+              ناموجود امروز
             </span>
           </div>
         )}
       </div>
 
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-        <div>
-          <h4 className="font-bold text-base text-white group-hover:text-amber-300 transition-colors">
-            {item.name}
-          </h4>
-          <p className="text-xs text-neutral-400 line-clamp-2 mt-1.5 leading-relaxed font-light">
+      {/* Editorial Content Surface */}
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 -mt-2 relative z-10">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="font-extrabold text-base sm:text-lg text-white group-hover:text-amber-300 transition-colors tracking-tight">
+              {item.name}
+            </h4>
+            {item.calories && (
+              <span className="text-[11px] text-neutral-400 font-light flex-shrink-0">
+                {toPersianDigits(item.calories)} کالری
+              </span>
+            )}
+          </div>
+          <p className="text-xs sm:text-sm text-neutral-300/80 line-clamp-2 leading-relaxed font-light">
             {item.description}
           </p>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-neutral-800/60">
-          <span className="text-sm font-bold text-amber-300 tracking-tight">
-            {formatToman(item.price)}
-          </span>
+        {/* Price & Selection Control Row */}
+        <div className="flex items-center justify-between pt-2.5 border-t border-neutral-800/60">
+          <div>
+            <span className="text-xs text-neutral-400 font-light block">قیمت خوراک</span>
+            <span className="text-base sm:text-lg font-extrabold text-amber-300 tracking-tight">
+              {formatToman(item.price)}
+            </span>
+          </div>
 
-          {/* Quick Selection Action */}
+          {/* Selection Control (No layout shift) */}
           {!isSoldOut && (
             <div
               onClick={(e) => e.stopPropagation()}
@@ -614,30 +631,32 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
               {quantity === 0 ? (
                 <button
                   onClick={() => addItem(item.id)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-neutral-950 flex items-center gap-1 active:scale-95 transition-all cursor-pointer shadow"
+                  className="px-3.5 py-2 rounded-xl text-xs font-black text-neutral-950 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-md"
                   style={{ backgroundColor: accentColor }}
                   title="افزودن به انتخاب‌ها"
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>انتخاب</span>
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>افزودن</span>
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5 bg-neutral-900/90 border border-neutral-700 rounded-xl p-0.5 shadow">
+                <div className="flex items-center gap-1.5 bg-[#090e15] border border-amber-500/40 rounded-xl p-1 shadow-lg">
                   <button
                     onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95"
+                    className="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
+                    aria-label="کاهش تعداد"
                   >
-                    {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
+                    {quantity === 1 ? <Trash2 className="w-3.5 h-3.5 text-rose-400" /> : <Minus className="w-3.5 h-3.5" />}
                   </button>
-                  <span className="w-5 text-center text-xs font-bold text-white">
+                  <span className="w-6 text-center text-xs font-black text-amber-300">
                     {toPersianDigits(quantity)}
                   </span>
                   <button
                     onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg text-neutral-950 font-bold flex items-center justify-center active:scale-95"
+                    className="w-7 h-7 rounded-lg text-neutral-950 font-black flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
                     style={{ backgroundColor: accentColor }}
+                    aria-label="افزایش تعداد"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 </div>
               )}
@@ -650,7 +669,7 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
 };
 
 /* -------------------------------------------------------------------------- */
-/* Subcomponent: Standard Editorial Item Card                                 */
+/* Subcomponent: Standard Editorial Item Card (Theme 01)                       */
 /* -------------------------------------------------------------------------- */
 const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColor }) => {
   const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
@@ -660,14 +679,17 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
   return (
     <motion.div
       whileTap={{ scale: 0.99 }}
+      whileHover={{ y: -1 }}
       onClick={() => onSelect(item)}
       id={`item-card-${item.id}`}
-      className={`relative bg-[#111822] hover:bg-[#151f2d] border border-neutral-800/70 rounded-2xl p-3 sm:p-4 transition-all cursor-pointer flex gap-3.5 items-center justify-between group ${
-        isSoldOut ? 'opacity-65' : ''
-      }`}
+      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3.5 sm:p-4 transition-all duration-200 cursor-pointer flex gap-3.5 sm:gap-4 items-center justify-between group shadow-md ${
+        quantity > 0
+          ? 'border-amber-500/40 shadow-[0_4px_20px_rgba(212,175,55,0.12)]'
+          : 'border-neutral-800/80 hover:border-neutral-700/80'
+      } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side */}
-      <div className="flex-1 min-w-0 pr-1 space-y-1.5">
+      <div className="flex-1 min-w-0 pr-0.5 space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition-colors line-clamp-1">
             {item.name}
@@ -675,7 +697,7 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
           {item.badge && (
             <span
               style={{ backgroundColor: `${accentColor}25`, color: accentColor }}
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap"
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap"
             >
               {item.badge}
             </span>
@@ -692,7 +714,7 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
         </p>
 
         <div className="flex items-center justify-between pt-1">
-          <span className="text-sm font-bold text-amber-300">
+          <span className="text-sm sm:text-base font-extrabold text-amber-300 tracking-tight">
             {formatToman(item.price)}
           </span>
 
@@ -708,26 +730,29 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
                   className="w-8 h-8 rounded-xl flex items-center justify-center text-neutral-950 font-bold active:scale-95 transition-all shadow cursor-pointer"
                   style={{ backgroundColor: accentColor }}
                   title="افزودن به انتخاب‌ها"
+                  aria-label={`افزودن ${item.name}`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-700/80 rounded-xl p-0.5 shadow">
+                <div className="flex items-center gap-1 bg-[#090e15] border border-amber-500/40 rounded-xl p-0.5 shadow">
                   <button
                     onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95"
+                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 cursor-pointer"
+                    aria-label="کاهش"
                   >
                     {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
                   </button>
-                  <span className="w-5 text-center text-xs font-bold text-white">
+                  <span className="w-5 text-center text-xs font-bold text-amber-300">
                     {toPersianDigits(quantity)}
                   </span>
                   <button
                     onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg text-neutral-950 font-bold flex items-center justify-center active:scale-95"
+                    className="w-6 h-6 rounded-lg text-neutral-950 font-bold flex items-center justify-center active:scale-95 cursor-pointer"
                     style={{ backgroundColor: accentColor }}
+                    aria-label="افزایش"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3 h-3 stroke-[2.5]" />
                   </button>
                 </div>
               )}
@@ -736,17 +761,19 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
         </div>
       </div>
 
-      {/* Image Thumbnail */}
-      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 bg-neutral-900 border border-neutral-800">
+      {/* Image Thumbnail with generous rounded border */}
+      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 bg-neutral-950 border border-neutral-800">
         <img
           src={item.image}
           alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+            isSoldOut ? 'grayscale contrast-75' : ''
+          }`}
           loading="lazy"
         />
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[10px] font-bold text-rose-300 text-center px-1">تمام شد</span>
+            <span className="text-[10px] font-bold text-neutral-300 text-center px-1">ناموجود</span>
           </div>
         )}
       </div>

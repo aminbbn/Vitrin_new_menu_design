@@ -138,3 +138,47 @@ body, html, #root, button, input, select, textarea {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
+
+/* Ambient Animated Atmospheric Glows */
+@keyframes ambientDrift1 {
+  0% {
+    transform: translate3d(0px, 0px, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(30px, -24px, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-20px, 20px, 0) scale(0.96);
+  }
+}
+
+@keyframes ambientDrift2 {
+  0% {
+    transform: translate3d(0px, 0px, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-32px, -30px, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(24px, 18px, 0) scale(0.94);
+  }
+}
+
+@keyframes ambientDrift3 {
+  0% {
+    transform: translate3d(0px, 0px, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(25px, 25px, 0) scale(0.95);
+  }
+  100% {
+    transform: translate3d(-18px, -18px, 0) scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-glow-animated {
+    animation: none !important;
+  }
+}
+

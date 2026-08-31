@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock, Flame, Sparkles, AlertCircle, CheckCircle2, XCircle, Leaf, ShieldAlert, Plus, Minus, Check } from 'lucide-react';
 import { MenuItem } from '../../types/menu';
 import { formatToman, toPersianDigits } from '../../utils/formatters';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
+import { useMenuViewport } from '../../context/MenuViewportContext';
 
 interface ProductDetailModalProps {
   item: MenuItem | null;
@@ -17,6 +18,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   accentColor = '#d4af37',
 }) => {
   const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
+  const { registerOverlay } = useMenuViewport();
+
+  useEffect(() => {
+    if (!item) return;
+    return registerOverlay(`product-modal-${item.id}`);
+  }, [item, registerOverlay]);
 
   if (!item) return null;
 
@@ -25,7 +32,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-auto" dir="rtl">
+      <div
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-auto"
+        dir="rtl"
+        onWheel={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -42,7 +54,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="relative w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl z-10 text-neutral-100 flex flex-col"
+          className="relative w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto overscroll-contain no-scrollbar shadow-2xl z-10 text-neutral-100 flex flex-col"
         >
           {/* Header Image */}
           <div className="relative w-full h-72 sm:h-80 bg-neutral-950 flex-shrink-0">

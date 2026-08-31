@@ -20,7 +20,10 @@ import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
 import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
+import { AmbientBackground } from '../../common/AmbientBackground';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
+import { useMenuViewport } from '../../../context/MenuViewportContext';
+import { useHeroTransition } from '../../../hooks/useHeroTransition';
 
 interface MinimalThemeProps {
   restaurant: RestaurantData;
@@ -37,7 +40,15 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   onStateChange,
   isDashboardPreview = false,
 }) => {
-  const [viewState, setViewState] = useState<'hero' | 'menu'>(initialState);
+  const transitionDuration = (config.hero?.transitionDurationMs || 650) / 1000;
+  const { viewState, isMenuMode, enterMenu, returnToHero } = useHeroTransition({
+    initialState,
+    onStateChange,
+    transitionDurationMs: config.hero?.transitionDurationMs || 650,
+  });
+
+  const { getScrollContainer, scrollToElement } = useMenuViewport();
+
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
@@ -47,31 +58,11 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (initialState !== viewState) {
-      setViewState(initialState);
-    }
-  }, [initialState]);
-
-  const handleEnterMenu = () => {
-    setViewState('menu');
-    onStateChange?.('menu');
-  };
-
-  const handleResetToHero = () => {
-    setViewState('hero');
-    onStateChange?.('hero');
-    const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
-    if (viewport) {
-      viewport.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   // Category Intersection Observer
   useEffect(() => {
-    if (viewState !== 'menu') return;
+    if (!isMenuMode) return;
 
+    const container = getScrollContainer();
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -81,7 +72,11 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
           }
         });
       },
-      { root: document.getElementById('device-screen-viewport'), rootMargin: '-80px 0px -70% 0px', threshold: 0.1 }
+      {
+        root: container === window ? null : (container as HTMLElement),
+        rootMargin: '-80px 0px -70% 0px',
+        threshold: 0.1,
+      }
     );
 
     restaurant.categories.forEach((cat) => {
@@ -90,14 +85,11 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
     });
 
     return () => observer.disconnect();
-  }, [viewState, restaurant.categories]);
+  }, [isMenuMode, restaurant.categories, getScrollContainer]);
 
   const handleCategoryClick = (catId: string) => {
     setActiveCategory(catId);
-    const target = document.getElementById(`minimal-cat-${catId}`);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    scrollToElement(`minimal-cat-${catId}`, 75);
   };
 
   const filteredItems = restaurant.items.filter((item) => {
@@ -111,19 +103,20 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   });
 
   const activeCategoryObj = restaurant.categories.find((c) => c.id === activeCategory);
-  const transitionDuration = (config.hero?.transitionDurationMs || 650) / 1000;
-  const isMenuMode = viewState === 'menu';
 
   return (
     <div
       ref={containerRef}
       dir="rtl"
-      className="min-h-screen bg-[#0d1317] text-neutral-200 font-sans selection:bg-teal-500/20"
+      className="min-h-screen bg-[#0a0f12] text-neutral-200 font-sans relative selection:bg-teal-500/20"
       style={{
-        backgroundColor: config.bgColor,
+        backgroundColor: config.bgColor || '#0a0f12',
         color: config.textColor,
       }}
     >
+      {/* Ambient Animated Atmospheric Glow Layer */}
+      <AmbientBackground theme="minimal" accentColor={config.accentColor || '#2dd4bf'} />
+
       {/* ------------------------------------------------------------------ */}
       {/* 1. CONTINUOUS HERO CONTAINER (Moves upward like a curtain/shutter) */}
       {/* ------------------------------------------------------------------ */}
@@ -131,13 +124,13 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
         layout
         initial={false}
         animate={{
-          height: isMenuMode ? '230px' : '100svh',
+          height: isMenuMode ? '230px' : 'var(--menu-viewport-height, 100dvh)',
         }}
         transition={{
           duration: transitionDuration,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="relative w-full overflow-hidden flex flex-col justify-between"
+        className="relative z-10 w-full overflow-hidden flex flex-col justify-between"
       >
         {/* Ambient Glow / Background Layer */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -176,7 +169,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                onClick={handleResetToHero}
+                onClick={returnToHero}
                 id="minimal-reset-btn"
                 className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neutral-900 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-neutral-800 active:scale-95 cursor-pointer shadow"
               >
@@ -236,16 +229,21 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 </div>
               </div>
 
-              {/* Minimalist Action Button */}
+              {/* Minimalist Action Button with Tactile Feedback */}
               <div className="pt-2">
-                <button
-                  onClick={handleEnterMenu}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => enterMenu('cta')}
                   id="minimal-enter-menu-btn"
                   className="w-full py-4 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-extrabold text-base active:scale-[0.98] transition-all flex items-center justify-between cursor-pointer shadow-lg shadow-teal-950/40"
                 >
                   <span>{config.hero.ctaText}</span>
                   <ChevronDown className="w-5 h-5" />
-                </button>
+                </motion.button>
+              </div>
+
+              <div className="text-neutral-400 text-xs font-light text-center">
+                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
               </div>
             </motion.div>
           )}
@@ -331,9 +329,9 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* 3. MENU STREAM CONTENT                                             */}
+      {/* 3. MENU STREAM CONTENT (Architectural Minimalist Reading)          */}
       {/* ------------------------------------------------------------------ */}
-      <main className="max-w-xl mx-auto px-4 pt-6 space-y-10 pb-28">
+      <main className="max-w-xl mx-auto px-4 pt-6 space-y-10 pb-28 relative z-10">
         {restaurant.categories.map((category) => {
           const items = filteredItems.filter((i) => i.categoryId === category.id);
           if (items.length === 0) return null;
@@ -343,24 +341,29 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               key={category.id}
               id={`minimal-cat-${category.id}`}
               data-category-id={category.id}
-              className="space-y-4 scroll-mt-20"
+              className="space-y-3 scroll-mt-20"
             >
-              <div className="flex items-baseline justify-between border-b border-neutral-800 pb-2">
-                <h3 className="font-bold text-base text-white tracking-tight">
-                  {category.name}
-                </h3>
-                <span className="text-[11px] text-neutral-500 font-light">
-                  {toPersianDigits(items.length)}
+              {/* Architectural Category Header */}
+              <div className="flex items-baseline justify-between border-b border-neutral-800/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                  <h3 className="font-bold text-base text-white tracking-tight">
+                    {category.name}
+                  </h3>
+                </div>
+                <span className="text-[11px] text-teal-400/80 font-medium">
+                  {toPersianDigits(items.length)} عنوان
                 </span>
               </div>
 
-              <div className="divide-y divide-neutral-900">
+              {/* Borderless Typographic Rows */}
+              <div className="divide-y divide-neutral-900/80">
                 {items.map((item) => (
                   <MinimalItemRow
                     key={item.id}
                     item={item}
                     onSelect={setSelectedItem}
-                    accentColor={config.accentColor}
+                    accentColor={config.accentColor || '#2dd4bf'}
                   />
                 ))}
               </div>
@@ -397,8 +400,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       </button>
 
       {/* Selection Components */}
-      <MenuSelectionBar accentColor={config.accentColor} themeId="minimal" />
-      <MenuSelectionSheet accentColor={config.accentColor} />
+      <MenuSelectionBar accentColor={config.accentColor || '#2dd4bf'} themeId="minimal" />
+      <MenuSelectionSheet accentColor={config.accentColor || '#2dd4bf'} />
 
       {/* Category Bottom Sheet */}
       <CategoryBottomSheet
@@ -408,28 +411,28 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
         items={restaurant.items}
         activeCategoryId={activeCategory}
         onSelectCategory={handleCategoryClick}
-        accentColor={config.accentColor}
+        accentColor={config.accentColor || '#2dd4bf'}
       />
 
       {/* Modals */}
       <ProductDetailModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
-        accentColor={config.accentColor}
+        accentColor={config.accentColor || '#2dd4bf'}
       />
 
       <RestaurantInfoModal
         restaurant={restaurant}
         isOpen={isInfoOpen}
         onClose={() => setIsInfoOpen(false)}
-        accentColor={config.accentColor}
+        accentColor={config.accentColor || '#2dd4bf'}
       />
     </div>
   );
 };
 
 /* -------------------------------------------------------------------------- */
-/* Subcomponent: Minimal Architectural Row Item                               */
+/* Subcomponent: Minimal Architectural Row Item (Theme 03: Read The Menu)     */
 /* -------------------------------------------------------------------------- */
 interface MinimalItemProps {
   item: MenuItem;
@@ -446,58 +449,88 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
     <div
       onClick={() => onSelect(item)}
       id={`minimal-item-${item.id}`}
-      className={`py-3.5 flex items-center justify-between gap-4 cursor-pointer group hover:bg-neutral-900/40 rounded-xl px-2 transition-colors ${
-        isSoldOut ? 'opacity-55' : ''
-      }`}
+      className={`py-3.5 px-2.5 rounded-xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
+        quantity > 0
+          ? 'bg-teal-950/20 border-r-2 border-teal-400/90 pl-3'
+          : 'hover:bg-neutral-900/50'
+      } ${isSoldOut ? 'opacity-55' : ''}`}
     >
+      {/* Content Side */}
       <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-center gap-2">
-          <h4 className="font-semibold text-sm text-white group-hover:text-teal-300 transition-colors truncate">
-            {item.name}
-          </h4>
-          {item.badge && (
-            <span className="text-[10px] text-teal-400 bg-teal-950/60 px-1.5 py-0.5 rounded border border-teal-800/40">
-              {item.badge}
-            </span>
-          )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+            <h4 className="font-semibold text-sm sm:text-base text-white group-hover:text-teal-300 transition-colors truncate">
+              {item.name}
+            </h4>
+            {item.badge && (
+              <span className="text-[10px] text-teal-300 bg-teal-950/70 px-1.5 py-0.5 rounded border border-teal-700/40">
+                {item.badge}
+              </span>
+            )}
+            {item.isVegetarian && (
+              <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40">
+                وجترین
+              </span>
+            )}
+          </div>
+
+          <div className="text-xs sm:text-sm font-bold text-teal-300 flex-shrink-0 tracking-tight">
+            {formatToman(item.price)}
+          </div>
         </div>
 
-        <p className="text-xs text-neutral-400 line-clamp-1 font-light">
+        <p className="text-xs text-neutral-400 line-clamp-1 font-light leading-relaxed">
           {item.description}
         </p>
-
-        <div className="text-xs font-bold text-teal-400 pt-0.5">
-          {formatToman(item.price)}
-        </div>
       </div>
 
-      {/* Selection Control */}
+      {/* Clean Architectural Thumbnail */}
+      <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-neutral-950 flex-shrink-0 border border-neutral-800">
+        <img
+          src={item.image}
+          alt={item.name}
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+            isSoldOut ? 'grayscale contrast-75' : ''
+          }`}
+          loading="lazy"
+        />
+        {isSoldOut && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
+            <span className="text-[9px] font-bold text-neutral-300">ناموجود</span>
+          </div>
+        )}
+      </div>
+
+      {/* Selection Control (Zero layout shift) */}
       {!isSoldOut && (
-        <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+        <div onClick={(e) => e.stopPropagation()} className="flex items-center flex-shrink-0">
           {quantity === 0 ? (
             <button
               onClick={() => addItem(item.id)}
-              className="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-700 hover:border-teal-400 text-neutral-300 hover:text-teal-300 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+              className="w-8 h-8 rounded-lg bg-neutral-900/90 border border-neutral-700 hover:border-teal-400 text-neutral-300 hover:text-teal-300 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm"
               title="افزودن به انتخاب‌ها"
+              aria-label={`افزودن ${item.name}`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 stroke-[2]" />
             </button>
           ) : (
-            <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-700 rounded-lg p-0.5">
+            <div className="flex items-center gap-1 bg-[#090d10] border border-teal-500/40 rounded-lg p-0.5 shadow">
               <button
                 onClick={() => decreaseItem(item.id)}
-                className="w-6 h-6 rounded bg-neutral-800 text-white flex items-center justify-center active:scale-95"
+                className="w-6 h-6 rounded bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 cursor-pointer"
+                aria-label="کاهش"
               >
                 {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
               </button>
-              <span className="w-5 text-center text-xs font-bold text-white">
+              <span className="w-5 text-center text-xs font-bold text-teal-300">
                 {toPersianDigits(quantity)}
               </span>
               <button
                 onClick={() => addItem(item.id)}
-                className="w-6 h-6 rounded bg-teal-400 text-black font-bold flex items-center justify-center active:scale-95"
+                className="w-6 h-6 rounded bg-teal-400 text-neutral-950 font-bold flex items-center justify-center active:scale-95 cursor-pointer"
+                aria-label="افزایش"
               >
-                <Plus className="w-3 h-3" />
+                <Plus className="w-3 h-3 stroke-[2.5]" />
               </button>
             </div>
           )}
