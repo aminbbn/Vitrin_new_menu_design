@@ -21,6 +21,7 @@ import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
 import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
+import { ScrollToTopButton } from '../../common/ScrollToTopButton';
 import { AmbientBackground } from '../../common/AmbientBackground';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
@@ -48,7 +49,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
     transitionDurationMs: config.hero?.transitionDurationMs || 700,
   });
 
-  const { getScrollContainer, scrollToElement } = useMenuViewport();
+  const { getScrollContainer, scrollToElement, viewportWidth } = useMenuViewport();
+  const isWideLayout = viewportWidth > 0 ? viewportWidth >= 768 : false;
 
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -391,7 +393,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
               )}
 
               {/* High-Density Horizontal Scanning Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className={`grid gap-3 ${isWideLayout ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {standardItems.map((item) => {
                   const isFav = favorites.has(item.id);
                   return (
@@ -411,32 +413,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
         })}
       </main>
 
-      {/* Floating Category Navigation Capsule Button */}
-      <div className="fixed bottom-20 right-4 z-30">
-        <button
-          onClick={() => setIsCategorySheetOpen(true)}
-          id="modern-floating-category-btn"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900/95 backdrop-blur-md border border-orange-500/40 text-orange-400 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
-        >
-          <Layers className="w-4 h-4 text-orange-400" />
-          <span>دسته‌ها</span>
-        </button>
-      </div>
-
-      {/* Floating Back to Top Button */}
-      <button
-        onClick={() => {
-          const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
-          if (viewport) {
-            viewport.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-slate-900/90 backdrop-blur-md border border-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-800 active:scale-95 shadow-xl transition-all"
-        aria-label="بازگشت به بالای منو"
-      >
-        <ArrowUp className="w-4 h-4" />
-      </button>
+      {/* Floating Bottom-Docked Scroll To Top Button (Accounting for Selection Bar) */}
+      <ScrollToTopButton accentColor={config.accentColor || '#f97316'} themeId="modern" />
 
       {/* Selection Components */}
       <MenuSelectionBar accentColor={config.accentColor || '#f97316'} themeId="modern" />
@@ -488,73 +466,61 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
     <div
       onClick={() => onSelect(item)}
       id={`modern-featured-${item.id}`}
-      className={`relative bg-[#0e131d]/90 hover:bg-[#121824]/95 border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group shadow-lg ${
+      className={`relative bg-[#0e131d]/90 hover:bg-[#121824]/95 border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group shadow-lg flex flex-row items-stretch h-[160px] ${
         quantity > 0
           ? 'border-orange-500/50 shadow-[0_4px_25px_rgba(249,115,22,0.15)]'
           : 'border-slate-800/80 hover:border-slate-700/80'
       } ${isSoldOut ? 'opacity-70' : ''}`}
     >
-      <div className="relative w-full h-40 sm:h-44 bg-slate-950 overflow-hidden">
-        <img
-          src={item.image}
-          alt={item.name}
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
-            isSoldOut ? 'grayscale contrast-75' : ''
-          }`}
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0e131d] via-[#0e131d]/40 to-transparent" />
+      {/* Content Side (Right in RTL) */}
+      <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-between h-full">
+        {/* Row 1: Title & Favorite Button */}
+        <div className="flex items-center justify-between gap-1.5 min-w-0">
+          <h4 className="font-black text-sm sm:text-base text-white group-hover:text-orange-400 transition-colors truncate">
+            {item.name}
+          </h4>
+          <button
+            onClick={onToggleFavorite}
+            className="w-6 h-6 rounded-full bg-slate-900/80 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors shrink-0 cursor-pointer"
+            aria-label="نشان کردن"
+          >
+            <Heart
+              className={`w-3.5 h-3.5 ${
+                isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-400'
+              }`}
+            />
+          </button>
+        </div>
 
-        {/* Badge */}
-        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+        {/* Row 2: Badges & Metadata */}
+        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden py-0.5">
           {item.badge && (
-            <span className="bg-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1">
-              <span>{item.badge}</span>
+            <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap shrink-0">
+              {item.badge}
             </span>
           )}
           {item.isVegetarian && (
-            <span className="bg-emerald-950/80 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+            <span className="bg-emerald-950/80 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 whitespace-nowrap shrink-0">
               وجترین
+            </span>
+          )}
+          {item.calories && (
+            <span className="text-[10px] text-slate-400 font-light whitespace-nowrap shrink-0">
+              {toPersianDigits(item.calories)} کالری
             </span>
           )}
         </div>
 
-        {/* Favorite */}
-        <button
-          onClick={onToggleFavorite}
-          className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-slate-300 hover:text-rose-500 transition-colors"
-          aria-label="نشان کردن"
-        >
-          <Heart
-            className={`w-3.5 h-3.5 ${
-              isFavorite ? 'fill-rose-500 text-rose-500' : 'text-slate-300'
-            }`}
-          />
-        </button>
-
-        {isSoldOut && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-slate-900/90 text-slate-300 text-xs font-bold px-3 py-1 rounded-full border border-slate-700">
-              ناموجود امروز
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="p-3.5 sm:p-4 space-y-2.5 -mt-1 relative z-10">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h4 className="font-black text-sm sm:text-base text-white group-hover:text-orange-400 transition-colors">
-              {item.name}
-            </h4>
-            <p className="text-xs text-slate-400 line-clamp-1 leading-relaxed font-light mt-0.5">
-              {item.description}
-            </p>
-          </div>
+        {/* Row 3: Strict Single-Line Description */}
+        <div className="min-w-0">
+          <p className="text-xs text-slate-400 font-light truncate leading-normal">
+            {item.description}
+          </p>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800/60">
-          <span className="text-base font-extrabold text-orange-400 tracking-tight">
+        {/* Row 4: Anchored Action & Price Row */}
+        <div className="mt-auto pt-2 border-t border-slate-800/60 flex items-center justify-between">
+          <span className="text-sm sm:text-base font-extrabold text-orange-400 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -586,13 +552,34 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
                     onClick={() => addItem(item.id)}
                     className="w-6 h-6 rounded-lg bg-orange-500 text-white font-bold flex items-center justify-center active:scale-95"
                   >
-                    <Plus className="w-3 h-3 stroke-[2.5]" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 </div>
               )}
             </div>
           )}
         </div>
+      </div>
+
+      {/* Dominant Food Photography Side (Left in RTL, ~38% width) */}
+      <div className="w-[38%] shrink-0 relative overflow-hidden bg-slate-950">
+        <img
+          src={item.image}
+          alt={item.name}
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out ${
+            isSoldOut ? 'grayscale contrast-75' : ''
+          }`}
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-[#0e131d]/70 via-transparent to-transparent" />
+
+        {isSoldOut && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-slate-900/90 text-slate-300 text-[10px] font-bold px-2 py-1 rounded-full border border-slate-700">
+              ناموجود
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -624,35 +611,35 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
     <div
       onClick={() => onSelect(item)}
       id={`modern-item-${item.id}`}
-      className={`relative bg-[#0e131d]/80 hover:bg-[#121824]/90 border rounded-2xl p-3 transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group shadow-sm ${
+      className={`relative bg-[#0e131d]/80 hover:bg-[#121824]/90 border rounded-2xl p-3 transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group shadow-sm h-[112px] ${
         quantity > 0
           ? 'border-orange-500/50 shadow-[0_2px_15px_rgba(249,115,22,0.12)]'
           : 'border-slate-800/80 hover:border-slate-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
-      {/* Content Side (Left in RTL) */}
-      <div className="flex-1 min-w-0 pr-0.5 space-y-1">
-        <div className="flex items-center justify-between gap-1">
-          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+      {/* Content Side */}
+      <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5">
+        {/* Row 1: Title + Badges + Favorite */}
+        <div className="flex items-center justify-between gap-1 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
             <h4 className="font-black text-sm text-white group-hover:text-orange-400 transition-colors truncate">
               {item.name}
             </h4>
             {item.badge && (
-              <span className="bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[9px] font-bold px-1.5 py-0.2 rounded-md whitespace-nowrap">
+              <span className="bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
                 {item.badge}
               </span>
             )}
             {item.isVegetarian && (
-              <span className="text-[9px] text-emerald-400 bg-emerald-950/40 px-1 rounded border border-emerald-800/30">
+              <span className="text-[9px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/30 whitespace-nowrap shrink-0">
                 وجترین
               </span>
             )}
           </div>
 
-          {/* Favorite toggle */}
           <button
             onClick={onToggleFavorite}
-            className="text-slate-500 hover:text-rose-500 transition-colors p-0.5 flex-shrink-0"
+            className="text-slate-500 hover:text-rose-500 transition-colors p-0.5 shrink-0 cursor-pointer"
             aria-label="نشان کردن"
           >
             <Heart
@@ -663,13 +650,14 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
           </button>
         </div>
 
-        <p className="text-xs text-slate-400 line-clamp-1 leading-relaxed font-light">
+        {/* Row 2: Strict Single-Line Description */}
+        <p className="text-xs text-slate-400 font-light truncate leading-normal">
           {item.description}
         </p>
 
-        {/* Price & Selection Control Row (Fixed height, no layout shift) */}
-        <div className="flex items-center justify-between pt-1.5">
-          <span className="text-sm font-black text-orange-400 tracking-tight">
+        {/* Row 3: Price & Selection Control Row */}
+        <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
+          <span className="text-sm font-black text-orange-400 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -704,7 +692,7 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
                     className="w-6 h-6 rounded-lg bg-orange-500 text-white font-bold flex items-center justify-center active:scale-95 cursor-pointer"
                     aria-label="افزایش"
                   >
-                    <Plus className="w-3 h-3 stroke-[2.5]" />
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   </button>
                 </div>
               )}
@@ -713,8 +701,8 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
         </div>
       </div>
 
-      {/* Product Image on Right side (RTL) */}
-      <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-950 flex-shrink-0 border border-slate-800">
+      {/* Product Image on Left side (RTL) */}
+      <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
         <img
           src={item.image}
           alt={item.name}

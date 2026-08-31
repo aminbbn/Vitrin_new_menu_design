@@ -20,6 +20,7 @@ import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
 import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
+import { ScrollToTopButton } from '../../common/ScrollToTopButton';
 import { AmbientBackground } from '../../common/AmbientBackground';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
@@ -372,32 +373,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
         })}
       </main>
 
-      {/* Floating Category Navigation Capsule Button */}
-      <div className="fixed bottom-20 right-4 z-30">
-        <button
-          onClick={() => setIsCategorySheetOpen(true)}
-          id="minimal-floating-category-btn"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-900/95 backdrop-blur-md border border-teal-500/40 text-teal-300 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
-        >
-          <Layers className="w-4 h-4 text-teal-400" />
-          <span>دسته‌ها</span>
-        </button>
-      </div>
-
-      {/* Floating Back to Top Button */}
-      <button
-        onClick={() => {
-          const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
-          if (viewport) {
-            viewport.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-800 text-neutral-400 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
-        aria-label="بازگشت به بالای منو"
-      >
-        <ArrowUp className="w-4 h-4" />
-      </button>
+      {/* Floating Bottom-Docked Scroll To Top Button (Accounting for Selection Bar) */}
+      <ScrollToTopButton accentColor={config.accentColor || '#2dd4bf'} themeId="minimal" />
 
       {/* Selection Components */}
       <MenuSelectionBar accentColor={config.accentColor || '#2dd4bf'} themeId="minimal" />
@@ -449,7 +426,7 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
     <div
       onClick={() => onSelect(item)}
       id={`minimal-item-${item.id}`}
-      className={`py-3.5 px-2.5 rounded-xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
+      className={`py-3 px-2.5 rounded-xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
         quantity > 0
           ? 'bg-teal-950/20 border-r-2 border-teal-400/90 pl-3'
           : 'hover:bg-neutral-900/50'
@@ -458,34 +435,35 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
       {/* Content Side */}
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
             <h4 className="font-semibold text-sm sm:text-base text-white group-hover:text-teal-300 transition-colors truncate">
               {item.name}
             </h4>
             {item.badge && (
-              <span className="text-[10px] text-teal-300 bg-teal-950/70 px-1.5 py-0.5 rounded border border-teal-700/40">
+              <span className="text-[10px] text-teal-300 bg-teal-950/70 px-1.5 py-0.5 rounded border border-teal-700/40 whitespace-nowrap shrink-0">
                 {item.badge}
               </span>
             )}
             {item.isVegetarian && (
-              <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40">
+              <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40 whitespace-nowrap shrink-0">
                 وجترین
               </span>
             )}
           </div>
 
-          <div className="text-xs sm:text-sm font-bold text-teal-300 flex-shrink-0 tracking-tight">
+          <div className="text-xs sm:text-sm font-bold text-teal-300 shrink-0 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </div>
         </div>
 
-        <p className="text-xs text-neutral-400 line-clamp-1 font-light leading-relaxed">
+        {/* Strict Single-Line Description */}
+        <p className="text-xs text-neutral-400 font-light truncate leading-normal">
           {item.description}
         </p>
       </div>
 
       {/* Clean Architectural Thumbnail */}
-      <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-neutral-950 flex-shrink-0 border border-neutral-800">
+      <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-neutral-950 shrink-0 border border-neutral-800">
         <img
           src={item.image}
           alt={item.name}
@@ -503,7 +481,7 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
 
       {/* Selection Control (Zero layout shift) */}
       {!isSoldOut && (
-        <div onClick={(e) => e.stopPropagation()} className="flex items-center flex-shrink-0">
+        <div onClick={(e) => e.stopPropagation()} className="flex items-center shrink-0">
           {quantity === 0 ? (
             <button
               onClick={() => addItem(item.id)}

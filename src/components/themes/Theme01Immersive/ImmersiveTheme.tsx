@@ -3,16 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
   ChevronDown,
-  Info,
-  ArrowUp,
-  RotateCcw,
   Search,
-  MapPin,
-  Clock,
-  Layers,
   Plus,
   Minus,
   Trash2,
+  RotateCcw,
+  Info,
+  Clock,
+  MapPin,
+  Layers,
 } from 'lucide-react';
 import { RestaurantData, MenuThemeConfig, MenuItem } from '../../../types/menu';
 import { formatToman, toPersianDigits } from '../../../utils/formatters';
@@ -22,6 +21,7 @@ import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
 import { AmbientBackground } from '../../common/AmbientBackground';
+import { ScrollToTopButton } from '../../common/ScrollToTopButton';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import { useHeroTransition } from '../../../hooks/useHeroTransition';
@@ -48,7 +48,8 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
     transitionDurationMs: config.hero?.transitionDurationMs || 750,
   });
 
-  const { getScrollContainer, scrollToElement } = useMenuViewport();
+  const { getScrollContainer, scrollToElement, viewportWidth } = useMenuViewport();
+  const isWideLayout = viewportWidth > 0 ? viewportWidth >= 768 : false;
 
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -391,8 +392,8 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                   <span className="text-xs text-amber-400 font-medium">امضای بونو</span>
                 </div>
 
-                {/* Featured Items Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Featured Items Grid: 1 per row on mobile, 2 on wide viewports */}
+                <div className={`grid gap-4 ${isWideLayout ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {featuredItems.slice(0, 2).map((item) => (
                     <FeaturedEditorialCard
                       key={item.id}
@@ -466,32 +467,8 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         </footer>
       </main>
 
-      {/* Floating Category Navigation Capsule Button */}
-      <div className="fixed bottom-20 right-4 z-30">
-        <button
-          onClick={() => setIsCategorySheetOpen(true)}
-          id="floating-category-capsule-btn"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-900/95 backdrop-blur-md border border-amber-500/40 text-amber-300 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
-        >
-          <Layers className="w-4 h-4 text-amber-400" />
-          <span>دسته‌ها</span>
-        </button>
-      </div>
-
-      {/* Floating Back to Top Button */}
-      <button
-        onClick={() => {
-          const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
-          if (viewport) {
-            viewport.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-neutral-300 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
-        aria-label="بازگشت به بالای منو"
-      >
-        <ArrowUp className="w-4 h-4" />
-      </button>
+      {/* Floating Bottom-Docked Scroll To Top Button (Accounting for Selection Bar) */}
+      <ScrollToTopButton accentColor={config.accentColor} themeId="immersive" />
 
       {/* Sticky Customer Selection Summary Bar */}
       <MenuSelectionBar accentColor={config.accentColor} themeId="immersive" />
@@ -544,85 +521,62 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
 
   return (
     <motion.div
-      whileHover={{ y: -3 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.99 }}
       onClick={() => onSelect(item)}
       id={`item-featured-${item.id}`}
-      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-col group ${
+      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-row items-stretch h-[162px] group ${
         quantity > 0
           ? 'border-amber-500/40 shadow-[0_8px_30px_rgba(212,175,55,0.14)]'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-70' : ''}`}
     >
-      {/* 55-70% Dominant Food Photography with Smooth Editorial Gradient */}
-      <div className="relative w-full h-48 sm:h-56 bg-neutral-950 overflow-hidden">
-        <img
-          src={item.image}
-          alt={item.name}
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out ${
-            isSoldOut ? 'grayscale contrast-75' : ''
-          }`}
-          loading="lazy"
-        />
-        {/* Soft Multi-Stage Image-to-Content Blend Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d141f] via-[#0d141f]/45 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent opacity-60" />
+      {/* Content Side (Right in RTL) */}
+      <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-between h-full">
+        {/* Row 1: Title */}
+        <div className="min-w-0">
+          <h4 className="font-extrabold text-sm sm:text-base text-white group-hover:text-amber-300 transition-colors tracking-tight truncate">
+            {item.name}
+          </h4>
+        </div>
 
-        {/* Featured / Signature Badge */}
-        {item.badge && (
-          <span
-            style={{ backgroundColor: accentColor, color: '#000' }}
-            className="absolute top-3 right-3 text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 backdrop-blur-sm"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{item.badge}</span>
-          </span>
-        )}
-
-        {item.isVegetarian && !item.badge && (
-          <span className="absolute top-3 right-3 text-[10px] font-bold text-emerald-300 bg-emerald-950/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-500/30">
-            وجترین
-          </span>
-        )}
-
-        {/* Sold Out Overlay */}
-        {isSoldOut && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-neutral-900/90 text-neutral-300 text-xs font-bold px-3.5 py-1.5 rounded-full border border-neutral-700 shadow-xl">
-              ناموجود امروز
+        {/* Row 2: Badges & Metadata */}
+        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden py-0.5">
+          {item.badge && (
+            <span
+              style={{ backgroundColor: accentColor, color: '#000' }}
+              className="text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 whitespace-nowrap shrink-0"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span className="truncate">{item.badge}</span>
             </span>
-          </div>
-        )}
-      </div>
+          )}
+          {item.isVegetarian && (
+            <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30 whitespace-nowrap shrink-0">
+              وجترین
+            </span>
+          )}
+          {item.calories && (
+            <span className="text-[10px] text-neutral-400 font-light whitespace-nowrap shrink-0">
+              {toPersianDigits(item.calories)} کالری
+            </span>
+          )}
+        </div>
 
-      {/* Editorial Content Surface */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 -mt-2 relative z-10">
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <h4 className="font-extrabold text-base sm:text-lg text-white group-hover:text-amber-300 transition-colors tracking-tight">
-              {item.name}
-            </h4>
-            {item.calories && (
-              <span className="text-[11px] text-neutral-400 font-light flex-shrink-0">
-                {toPersianDigits(item.calories)} کالری
-              </span>
-            )}
-          </div>
-          <p className="text-xs sm:text-sm text-neutral-300/80 line-clamp-2 leading-relaxed font-light">
+        {/* Row 3: Strict Single-Line Description */}
+        <div className="min-w-0">
+          <p className="text-xs text-neutral-300/80 font-light truncate leading-normal">
             {item.description}
           </p>
         </div>
 
-        {/* Price & Selection Control Row */}
-        <div className="flex items-center justify-between pt-2.5 border-t border-neutral-800/60">
-          <div>
-            <span className="text-xs text-neutral-400 font-light block">قیمت خوراک</span>
-            <span className="text-base sm:text-lg font-extrabold text-amber-300 tracking-tight">
-              {formatToman(item.price)}
-            </span>
-          </div>
+        {/* Row 4: Anchored Action & Price Row */}
+        <div className="mt-auto pt-2 border-t border-neutral-800/60 flex items-center justify-between">
+          <span className="text-sm sm:text-base font-extrabold text-amber-300 tracking-tight whitespace-nowrap">
+            {formatToman(item.price)}
+          </span>
 
-          {/* Selection Control (No layout shift) */}
+          {/* Selection Control */}
           {!isSoldOut && (
             <div
               onClick={(e) => e.stopPropagation()}
@@ -631,38 +585,61 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
               {quantity === 0 ? (
                 <button
                   onClick={() => addItem(item.id)}
-                  className="px-3.5 py-2 rounded-xl text-xs font-black text-neutral-950 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-md"
+                  className="px-3 py-1.5 rounded-xl text-xs font-black text-neutral-950 flex items-center gap-1 active:scale-95 transition-all cursor-pointer shadow-md"
                   style={{ backgroundColor: accentColor }}
                   title="افزودن به انتخاب‌ها"
+                  aria-label={`افزودن ${item.name}`}
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>افزودن</span>
                 </button>
               ) : (
-                <div className="flex items-center gap-1.5 bg-[#090e15] border border-amber-500/40 rounded-xl p-1 shadow-lg">
+                <div className="flex items-center gap-1 bg-[#090e15] border border-amber-500/40 rounded-xl p-0.5 shadow-lg">
                   <button
                     onClick={() => decreaseItem(item.id)}
-                    className="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
+                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
                     aria-label="کاهش تعداد"
                   >
-                    {quantity === 1 ? <Trash2 className="w-3.5 h-3.5 text-rose-400" /> : <Minus className="w-3.5 h-3.5" />}
+                    {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
                   </button>
-                  <span className="w-6 text-center text-xs font-black text-amber-300">
+                  <span className="w-5 text-center text-xs font-black text-amber-300">
                     {toPersianDigits(quantity)}
                   </span>
                   <button
                     onClick={() => addItem(item.id)}
-                    className="w-7 h-7 rounded-lg text-neutral-950 font-black flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
+                    className="w-6 h-6 rounded-lg text-neutral-950 font-black flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
                     style={{ backgroundColor: accentColor }}
                     aria-label="افزایش تعداد"
                   >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <Plus className="w-3 h-3 stroke-[2.5]" />
                   </button>
                 </div>
               )}
             </div>
           )}
         </div>
+      </div>
+
+      {/* Dominant Food Photography Side (Left in RTL, ~38% width) */}
+      <div className="w-[38%] shrink-0 relative overflow-hidden bg-neutral-950">
+        <img
+          src={item.image}
+          alt={item.name}
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out ${
+            isSoldOut ? 'grayscale contrast-75' : ''
+          }`}
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-[#0d141f]/70 via-transparent to-transparent" />
+
+        {/* Sold Out Overlay */}
+        {isSoldOut && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-neutral-900/90 text-neutral-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-neutral-700 shadow-xl">
+              ناموجود
+            </span>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -682,39 +659,42 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
       whileHover={{ y: -1 }}
       onClick={() => onSelect(item)}
       id={`item-card-${item.id}`}
-      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3.5 sm:p-4 transition-all duration-200 cursor-pointer flex gap-3.5 sm:gap-4 items-center justify-between group shadow-md ${
+      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex gap-3.5 items-center justify-between group shadow-md h-[112px] ${
         quantity > 0
           ? 'border-amber-500/40 shadow-[0_4px_20px_rgba(212,175,55,0.12)]'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side */}
-      <div className="flex-1 min-w-0 pr-0.5 space-y-1.5">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition-colors line-clamp-1">
+      <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5">
+        {/* Row 1: Title + Badges */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition-colors truncate">
             {item.name}
           </h4>
           {item.badge && (
             <span
               style={{ backgroundColor: `${accentColor}25`, color: accentColor }}
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap"
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap shrink-0"
             >
               {item.badge}
             </span>
           )}
           {item.isVegetarian && (
-            <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40">
+            <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40 whitespace-nowrap shrink-0">
               وجترین
             </span>
           )}
         </div>
 
-        <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed font-light">
+        {/* Row 2: Strict Single Line Description */}
+        <p className="text-xs text-neutral-400 font-light truncate leading-normal">
           {item.description}
         </p>
 
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-sm sm:text-base font-extrabold text-amber-300 tracking-tight">
+        {/* Row 3: Price and Selection Control */}
+        <div className="flex items-center justify-between pt-1 border-t border-neutral-800/40">
+          <span className="text-sm sm:text-base font-extrabold text-amber-300 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -727,12 +707,12 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
               {quantity === 0 ? (
                 <button
                   onClick={() => addItem(item.id)}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-neutral-950 font-bold active:scale-95 transition-all shadow cursor-pointer"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-neutral-950 font-bold active:scale-95 transition-all shadow cursor-pointer"
                   style={{ backgroundColor: accentColor }}
                   title="افزودن به انتخاب‌ها"
                   aria-label={`افزودن ${item.name}`}
                 >
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
                 </button>
               ) : (
                 <div className="flex items-center gap-1 bg-[#090e15] border border-amber-500/40 rounded-xl p-0.5 shadow">
@@ -761,8 +741,8 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
         </div>
       </div>
 
-      {/* Image Thumbnail with generous rounded border */}
-      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 bg-neutral-950 border border-neutral-800">
+      {/* Image Thumbnail with stable dimensions */}
+      <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-neutral-950 border border-neutral-800">
         <img
           src={item.image}
           alt={item.name}

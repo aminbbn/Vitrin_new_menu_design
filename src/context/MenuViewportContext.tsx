@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useRef, useState, useEffect, useCallback } from 'react';
 
+export type OverlayPresentation = 'mobile-sheet' | 'tablet-sheet' | 'desktop-modal';
+
+export function getOverlayPresentation(viewportWidth: number): OverlayPresentation {
+  const width = viewportWidth > 0 ? viewportWidth : (typeof window !== 'undefined' ? window.innerWidth : 390);
+  if (width < 640) return 'mobile-sheet';
+  if (width < 1024) return 'tablet-sheet';
+  return 'desktop-modal';
+}
+
 interface MenuViewportContextType {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   getScrollContainer: () => HTMLElement | Window | null;
@@ -11,6 +20,9 @@ interface MenuViewportContextType {
   isSimulated: boolean;
   isOverlayOpen: boolean;
   registerOverlay: (id: string) => () => void;
+  overlayRootRef?: React.RefObject<HTMLDivElement | null>;
+  getOverlayRoot: () => HTMLElement | null;
+  overlayPresentation: OverlayPresentation;
 }
 
 const MenuViewportContext = createContext<MenuViewportContextType | null>(null);
@@ -21,6 +33,7 @@ export interface MenuViewportProviderProps {
   viewportHeight?: number;
   isSimulated?: boolean;
   containerRef?: React.RefObject<HTMLDivElement | null>;
+  overlayRootRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
@@ -29,11 +42,25 @@ export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
   viewportHeight = 0,
   isSimulated = false,
   containerRef: externalContainerRef,
+  overlayRootRef: externalOverlayRootRef,
 }) => {
   const internalContainerRef = useRef<HTMLDivElement | null>(null);
   const activeContainerRef = externalContainerRef || internalContainerRef;
   const [activeOverlays, setActiveOverlays] = useState<Set<string>>(new Set());
   const savedScrollPosRef = useRef<number>(0);
+
+  const overlayPresentation = getOverlayPresentation(viewportWidth);
+
+  const getOverlayRoot = useCallback((): HTMLElement | null => {
+    if (isSimulated && externalOverlayRootRef?.current) {
+      return externalOverlayRootRef.current;
+    }
+    const el = document.getElementById('device-overlay-root');
+    if (el && isSimulated) {
+      return el;
+    }
+    return typeof document !== 'undefined' ? document.body : null;
+  }, [isSimulated, externalOverlayRootRef]);
 
   const getScrollContainer = useCallback((): HTMLElement | Window | null => {
     if (isSimulated && activeContainerRef.current) {
@@ -193,6 +220,9 @@ export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
         isSimulated,
         isOverlayOpen: activeOverlays.size > 0,
         registerOverlay,
+        overlayRootRef: externalOverlayRootRef,
+        getOverlayRoot,
+        overlayPresentation,
       }}
     >
       {children}
@@ -204,6 +234,7 @@ export const useMenuViewport = () => {
   const context = useContext(MenuViewportContext);
   if (!context) {
     // Fallback if not wrapped in provider
+    const fallbackWidth = typeof window !== 'undefined' ? window.innerWidth : 390;
     return {
       scrollContainerRef: { current: null },
       getScrollContainer: () => (typeof window !== 'undefined' ? window : null),
@@ -218,11 +249,14 @@ export const useMenuViewport = () => {
           window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         }
       },
-      viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 390,
+      viewportWidth: fallbackWidth,
       viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 844,
       isSimulated: false,
       isOverlayOpen: false,
       registerOverlay: () => () => {},
+      overlayRootRef: { current: null },
+      getOverlayRoot: () => (typeof document !== 'undefined' ? document.body : null),
+      overlayPresentation: getOverlayPresentation(fallbackWidth),
     };
   }
   return context;

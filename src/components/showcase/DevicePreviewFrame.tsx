@@ -57,6 +57,7 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
 }) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const viewportScrollRef = useRef<HTMLDivElement>(null);
+  const overlayRootRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState<number>(1);
   const [autoFit, setAutoFit] = useState<boolean>(true);
 
@@ -129,6 +130,7 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
     <MenuViewportProvider
       isSimulated={true}
       containerRef={viewportScrollRef}
+      overlayRootRef={overlayRootRef}
       viewportWidth={targetWidth}
       viewportHeight={targetHeight}
     >
@@ -212,18 +214,28 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
                 </div>
               )}
 
-              {/* Internal Screen Viewport */}
-              <div
-                ref={viewportScrollRef}
-                id="device-screen-viewport"
-                className="w-full h-full rounded-[38px] overflow-y-auto overflow-x-hidden no-scrollbar relative bg-neutral-950"
-                style={{
-                  transform: 'translateZ(0)',
-                  '--menu-viewport-height': `${targetHeight}px`,
-                  '--menu-viewport-width': `${targetWidth}px`,
-                } as React.CSSProperties}
-              >
-                {children}
+              {/* Physical Screen Surface (Clipped by rounded screen radius) */}
+              <div className="w-full h-full rounded-[38px] relative overflow-hidden bg-neutral-950">
+                {/* Layer 1: Internal Screen Scroll Viewport */}
+                <div
+                  ref={viewportScrollRef}
+                  id="device-screen-viewport"
+                  className="absolute inset-0 overflow-y-auto overflow-x-hidden no-scrollbar bg-neutral-950"
+                  style={{
+                    transform: 'translateZ(0)',
+                    '--menu-viewport-height': `${targetHeight}px`,
+                    '--menu-viewport-width': `${targetWidth}px`,
+                  } as React.CSSProperties}
+                >
+                  {children}
+                </div>
+
+                {/* Layer 2: Device Overlay Root (Clips and scales with phone screen) */}
+                <div
+                  ref={overlayRootRef}
+                  id="device-overlay-root"
+                  className="absolute inset-0 pointer-events-none z-50 overflow-hidden"
+                />
               </div>
             </div>
           )}
@@ -244,18 +256,28 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
                 <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-neutral-800 rounded-full z-40 pointer-events-none" />
               )}
 
-              {/* Internal Screen Viewport */}
-              <div
-                ref={viewportScrollRef}
-                id="device-screen-viewport"
-                className="w-full h-full rounded-[24px] overflow-y-auto overflow-x-hidden no-scrollbar relative bg-neutral-950"
-                style={{
-                  transform: 'translateZ(0)',
-                  '--menu-viewport-height': `${targetHeight}px`,
-                  '--menu-viewport-width': `${targetWidth}px`,
-                } as React.CSSProperties}
-              >
-                {children}
+              {/* Physical Screen Surface */}
+              <div className="w-full h-full rounded-[24px] relative overflow-hidden bg-neutral-950">
+                {/* Layer 1: Internal Screen Scroll Viewport */}
+                <div
+                  ref={viewportScrollRef}
+                  id="device-screen-viewport"
+                  className="absolute inset-0 overflow-y-auto overflow-x-hidden no-scrollbar bg-neutral-950"
+                  style={{
+                    transform: 'translateZ(0)',
+                    '--menu-viewport-height': `${targetHeight}px`,
+                    '--menu-viewport-width': `${targetWidth}px`,
+                  } as React.CSSProperties}
+                >
+                  {children}
+                </div>
+
+                {/* Layer 2: Device Overlay Root */}
+                <div
+                  ref={overlayRootRef}
+                  id="device-overlay-root"
+                  className="absolute inset-0 pointer-events-none z-50 overflow-hidden"
+                />
               </div>
             </div>
           )}
@@ -289,19 +311,31 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
                 </div>
               </div>
 
-              {/* Internal Screen Viewport */}
+              {/* Physical Screen Surface */}
               <div
-                ref={viewportScrollRef}
-                id="device-screen-viewport"
-                className="w-full overflow-y-auto overflow-x-hidden no-scrollbar relative bg-neutral-950 flex-1"
-                style={{
-                  height: targetHeight,
-                  transform: 'translateZ(0)',
-                  '--menu-viewport-height': `${targetHeight}px`,
-                  '--menu-viewport-width': `${targetWidth}px`,
-                } as React.CSSProperties}
+                className="relative overflow-hidden bg-neutral-950 flex-1"
+                style={{ height: targetHeight }}
               >
-                {children}
+                {/* Layer 1: Internal Screen Scroll Viewport */}
+                <div
+                  ref={viewportScrollRef}
+                  id="device-screen-viewport"
+                  className="absolute inset-0 overflow-y-auto overflow-x-hidden no-scrollbar bg-neutral-950"
+                  style={{
+                    transform: 'translateZ(0)',
+                    '--menu-viewport-height': `${targetHeight}px`,
+                    '--menu-viewport-width': `${targetWidth}px`,
+                  } as React.CSSProperties}
+                >
+                  {children}
+                </div>
+
+                {/* Layer 2: Device Overlay Root */}
+                <div
+                  ref={overlayRootRef}
+                  id="device-overlay-root"
+                  className="absolute inset-0 pointer-events-none z-50 overflow-hidden"
+                />
               </div>
             </div>
           )}
