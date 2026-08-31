@@ -112,7 +112,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   });
 
   const activeCategoryObj = restaurant.categories.find((c) => c.id === activeCategory);
-  const transitionDuration = (config.hero?.transitionDurationMs || 600) / 1000;
+  const transitionDuration = (config.hero?.transitionDurationMs || 650) / 1000;
+  const isMenuMode = viewState === 'menu';
 
   return (
     <div
@@ -125,110 +126,92 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       }}
     >
       {/* ------------------------------------------------------------------ */}
-      {/* UNIFIED MORPHING HERO → COMPACT HEADER CONTAINER                   */}
+      {/* 1. CONTINUOUS HERO CONTAINER (Moves upward like a curtain/shutter) */}
       {/* ------------------------------------------------------------------ */}
       <motion.div
         layout
+        initial={false}
+        animate={{
+          height: isMenuMode ? '230px' : '100svh',
+        }}
         transition={{
           duration: transitionDuration,
-          ease: [0.25, 1, 0.5, 1],
+          ease: [0.22, 1, 0.36, 1],
         }}
-        className={`relative w-full z-40 transition-colors ${
-          viewState === 'hero'
-            ? 'min-h-[92vh] sm:min-h-screen flex flex-col justify-between overflow-hidden'
-            : 'sticky top-0 bg-[#0d1317]/95 backdrop-blur-md border-b border-neutral-800 shadow-md'
-        }`}
+        className="relative w-full overflow-hidden flex flex-col justify-between"
       >
-        {/* Subtle Ambient Glow Layer */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Ambient Glow / Background Layer */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <img
+            src={restaurant.heroImage}
+            alt={restaurant.name}
+            className="w-full h-full object-cover object-center filter brightness-[0.7]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1317] via-[#0d1317]/60 to-black/50" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
 
-        {/* Top Header Bar (Shared elements) */}
-        <div className="relative z-10 w-full px-4 sm:px-6 py-3.5 max-w-xl mx-auto flex items-center justify-between">
+        {/* Top Header Bar Area */}
+        <div className="relative z-10 w-full px-4 sm:px-6 pt-4 max-w-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <motion.div
-              layoutId="minimal-brand-logo"
-              transition={{ duration: transitionDuration, ease: [0.25, 1, 0.5, 1] }}
-              className={`rounded-xl overflow-hidden bg-neutral-900 border border-teal-500/30 flex-shrink-0 transition-all ${
-                viewState === 'hero' ? 'w-11 h-11 sm:w-13 sm:h-13' : 'w-8 h-8 sm:w-9 sm:h-9'
-              }`}
-            >
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-neutral-900 border border-teal-500/30 flex-shrink-0">
               <img
                 src={restaurant.logo}
                 alt={restaurant.name}
                 className="w-full h-full object-cover"
               />
-            </motion.div>
+            </div>
 
-            <motion.div
-              layoutId="minimal-brand-text"
-              transition={{ duration: transitionDuration, ease: [0.25, 1, 0.5, 1] }}
-            >
-              <h1 className={`font-bold tracking-tight text-white transition-all ${
-                viewState === 'hero' ? 'text-base sm:text-lg' : 'text-sm sm:text-base'
-              }`}>
+            <div>
+              <h1 className="font-bold tracking-tight text-white text-base sm:text-lg">
                 {restaurant.name}
               </h1>
-              <p className="text-[10px] text-teal-400 font-medium">
-                {restaurant.cuisine}
+              <p className="text-[11px] text-teal-400 font-medium">
+                {restaurant.cuisine} • {restaurant.neighborhood}
               </p>
-            </motion.div>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Search in Menu */}
-            {viewState === 'menu' && (
+            {isMenuMode && (
               <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={() => setShowSearch(!showSearch)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                  showSearch ? 'bg-teal-400 text-black' : 'bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white'
-                }`}
-                aria-label="جستجو در منو"
-              >
-                <Search className="w-4 h-4" />
-              </motion.button>
-            )}
-
-            {/* Info Trigger */}
-            <button
-              onClick={() => setIsInfoOpen(true)}
-              id="minimal-header-info-btn"
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-white active:scale-95 transition-all cursor-pointer"
-              aria-label="اطلاعات رستوران"
-            >
-              <Info className="w-4 h-4 text-teal-300" />
-            </button>
-
-            {/* Return to Hero CTA in Menu State */}
-            {viewState === 'menu' && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={handleResetToHero}
                 id="minimal-reset-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neutral-900 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-neutral-800 active:scale-95 cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neutral-900 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-neutral-800 active:scale-95 cursor-pointer shadow"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="text-[11px]">معرفی</span>
               </motion.button>
             )}
+
+            <button
+              onClick={() => setIsInfoOpen(true)}
+              id="minimal-header-info-btn"
+              className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-700/80 flex items-center justify-center text-neutral-300 hover:text-white active:scale-95 transition-all cursor-pointer shadow"
+              aria-label="اطلاعات رستوران"
+            >
+              <Info className="w-4 h-4 text-teal-300" />
+            </button>
           </div>
         </div>
 
         {/* Hero Architectural Layout */}
         <AnimatePresence>
-          {viewState === 'hero' && (
+          {!isMenuMode && (
             <motion.div
               key="minimal-hero-body"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="relative z-10 px-6 py-8 sm:py-12 max-w-xl mx-auto w-full flex flex-col justify-between space-y-8 flex-1"
+              initial={{ opacity: 1, y: 0 }}
+              exit={{
+                opacity: 0,
+                y: -60,
+                transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+              }}
+              transition={{ duration: 0.5 }}
+              className="relative z-10 px-6 py-6 max-w-xl mx-auto w-full flex flex-col justify-between space-y-6 my-auto"
             >
-              {/* Minimal Hero Card with Clean Typography */}
-              <div className="space-y-6 my-auto text-right">
+              <div className="space-y-4 text-right">
                 <div className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium">
                   منوی رستوران و کافه
                 </div>
@@ -255,7 +238,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               </div>
 
               {/* Minimalist Action Button */}
-              <div className="pt-4 pb-4">
+              <div className="pt-2">
                 <button
                   onClick={handleEnterMenu}
                   id="minimal-enter-menu-btn"
@@ -269,134 +252,144 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Search Bar in Menu View */}
-        {viewState === 'menu' && showSearch && (
+        {/* Collapsed Short Hero Status Bar */}
+        {isMenuMode && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-4 pb-3 max-w-xl mx-auto w-full"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="relative z-10 w-full px-4 sm:px-6 pb-3 max-w-xl mx-auto flex items-center justify-between text-xs text-neutral-300 border-t border-white/10 pt-2"
           >
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="جستجوی عنوان یا ترکیبات غذا..."
-                className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute left-3 top-2 text-xs text-neutral-400 hover:text-white"
-                >
-                  پاک کردن
-                </button>
-              )}
+            <div className="flex items-center gap-2 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
+            </div>
+            <div className="text-teal-300 font-medium">
+              {toPersianDigits(restaurant.items.length)} آیتم
             </div>
           </motion.div>
-        )}
-
-        {/* Compact Category Indicator in Menu View */}
-        {viewState === 'menu' && (
-          <div className="w-full py-2 px-4 border-t border-neutral-800 bg-neutral-900/70">
-            <div className="max-w-xl mx-auto flex items-center justify-between gap-3">
-              <button
-                onClick={() => setIsCategorySheetOpen(true)}
-                id="minimal-all-cats-btn"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-neutral-800 text-teal-300 border border-neutral-700 active:scale-95 transition-all cursor-pointer"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>دسته‌ها: {activeCategoryObj?.name || 'همه'}</span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-
-              <div className="text-[11px] text-neutral-400 font-medium">
-                {toPersianDigits(restaurant.items.length)} آیتم
-              </div>
-            </div>
-          </div>
         )}
       </motion.div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* ACTUAL MENU STATE (Clean Line-Item Architectural List)             */}
+      {/* 2. STICKY CATEGORY NAVIGATOR & SEARCH                              */}
       {/* ------------------------------------------------------------------ */}
-      {viewState === 'menu' && (
-        <motion.div
-          key="minimal-menu-body"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: 'easeOut', delay: 0.15 }}
-          className="w-full min-h-screen pb-28"
-        >
-          <main className="max-w-xl mx-auto px-4 pt-6 space-y-10">
-            {restaurant.categories.map((category) => {
-              const items = filteredItems.filter((i) => i.categoryId === category.id);
-              if (items.length === 0) return null;
-
-              return (
-                <section
-                  key={category.id}
-                  id={`minimal-cat-${category.id}`}
-                  data-category-id={category.id}
-                  className="space-y-4 scroll-mt-24"
-                >
-                  <div className="flex items-baseline justify-between border-b border-neutral-800 pb-2">
-                    <h3 className="font-bold text-base text-white tracking-tight">
-                      {category.name}
-                    </h3>
-                    <span className="text-[11px] text-neutral-500 font-light">
-                      {toPersianDigits(items.length)}
-                    </span>
-                  </div>
-
-                  <div className="divide-y divide-neutral-900">
-                    {items.map((item) => (
-                      <MinimalItemRow
-                        key={item.id}
-                        item={item}
-                        onSelect={setSelectedItem}
-                        accentColor={config.accentColor}
-                      />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </main>
-        </motion.div>
-      )}
-
-      {/* Floating Category Navigation Capsule Button */}
-      {viewState === 'menu' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-20 right-4 z-30"
-        >
+      <div className="sticky top-0 z-30 bg-[#0d1317]/95 backdrop-blur-md border-y border-neutral-800 shadow-md">
+        <div className="max-w-xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
           <button
             onClick={() => setIsCategorySheetOpen(true)}
-            id="minimal-floating-category-btn"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-900/95 backdrop-blur-md border border-teal-500/40 text-teal-300 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
+            id="minimal-all-cats-btn"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-neutral-800 text-teal-300 border border-neutral-700 active:scale-95 transition-all cursor-pointer"
           >
-            <Layers className="w-4 h-4 text-teal-400" />
-            <span>دسته‌ها</span>
+            <Layers className="w-3.5 h-3.5" />
+            <span>دسته‌بندی: {activeCategoryObj?.name || 'همه دسته‌ها'}</span>
+            <ChevronDown className="w-3.5 h-3.5" />
           </button>
-        </motion.div>
-      )}
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+                showSearch ? 'bg-teal-400 text-black' : 'bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white'
+              }`}
+              aria-label="جستجو در منو"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="px-4 pb-3 max-w-xl mx-auto w-full"
+            >
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="جستجوی عنوان یا ترکیبات غذا..."
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute left-3 top-2 text-xs text-neutral-400 hover:text-white"
+                  >
+                    پاک کردن
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* 3. MENU STREAM CONTENT                                             */}
+      {/* ------------------------------------------------------------------ */}
+      <main className="max-w-xl mx-auto px-4 pt-6 space-y-10 pb-28">
+        {restaurant.categories.map((category) => {
+          const items = filteredItems.filter((i) => i.categoryId === category.id);
+          if (items.length === 0) return null;
+
+          return (
+            <section
+              key={category.id}
+              id={`minimal-cat-${category.id}`}
+              data-category-id={category.id}
+              className="space-y-4 scroll-mt-20"
+            >
+              <div className="flex items-baseline justify-between border-b border-neutral-800 pb-2">
+                <h3 className="font-bold text-base text-white tracking-tight">
+                  {category.name}
+                </h3>
+                <span className="text-[11px] text-neutral-500 font-light">
+                  {toPersianDigits(items.length)}
+                </span>
+              </div>
+
+              <div className="divide-y divide-neutral-900">
+                {items.map((item) => (
+                  <MinimalItemRow
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    accentColor={config.accentColor}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </main>
+
+      {/* Floating Category Navigation Capsule Button */}
+      <div className="fixed bottom-20 right-4 z-30">
+        <button
+          onClick={() => setIsCategorySheetOpen(true)}
+          id="minimal-floating-category-btn"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-900/95 backdrop-blur-md border border-teal-500/40 text-teal-300 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
+        >
+          <Layers className="w-4 h-4 text-teal-400" />
+          <span>دسته‌ها</span>
+        </button>
+      </div>
 
       {/* Floating Back to Top Button */}
-      {viewState === 'menu' && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-800 text-neutral-400 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
-          aria-label="بازگشت به بالای منو"
-        >
-          <ArrowUp className="w-4 h-4" />
-        </button>
-      )}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-800 text-neutral-400 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
+        aria-label="بازگشت به بالای منو"
+      >
+        <ArrowUp className="w-4 h-4" />
+      </button>
 
       {/* Selection Components */}
       <MenuSelectionBar accentColor={config.accentColor} themeId="minimal" />

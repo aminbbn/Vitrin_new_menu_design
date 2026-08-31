@@ -108,7 +108,7 @@ export default function App() {
                 {/* Inner Screen Container */}
                 <div className="w-full h-full rounded-[38px] overflow-y-auto no-scrollbar relative bg-neutral-950">
                   <ThemeRenderer
-                    key={`${currentTheme}-${currentState}`}
+                    key={currentTheme}
                     themeId={currentTheme}
                     restaurant={mockRestaurantData}
                     config={activeConfig}
@@ -128,7 +128,7 @@ export default function App() {
             {viewportSize === 'responsive' ? (
               <div className="w-full min-h-screen">
                 <ThemeRenderer
-                  key={`${currentTheme}-${currentState}`}
+                  key={currentTheme}
                   themeId={currentTheme}
                   restaurant={mockRestaurantData}
                   config={activeConfig}
@@ -144,7 +144,7 @@ export default function App() {
                   className={`${getViewportWidthClass()} transition-all duration-300 rounded-3xl overflow-hidden border border-neutral-800 shadow-2xl bg-neutral-950 my-2`}
                 >
                   <ThemeRenderer
-                    key={`${currentTheme}-${currentState}`}
+                    key={currentTheme}
                     themeId={currentTheme}
                     restaurant={mockRestaurantData}
                     config={activeConfig}

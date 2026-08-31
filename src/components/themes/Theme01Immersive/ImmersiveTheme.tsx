@@ -9,10 +9,6 @@ import {
   Search,
   MapPin,
   Clock,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  Leaf,
   Layers,
   Plus,
   Minus,
@@ -52,7 +48,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync state if controlled from outside
+  // Sync external state changes
   useEffect(() => {
     if (initialState !== viewState) {
       setViewState(initialState);
@@ -125,7 +121,8 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
   const featuredItems = restaurant.items.filter((item) => item.isFeatured);
   const activeCategoryObj = restaurant.categories.find((c) => c.id === activeCategory);
 
-  const transitionDuration = (config.hero?.transitionDurationMs || 700) / 1000;
+  const transitionDuration = (config.hero?.transitionDurationMs || 750) / 1000;
+  const isMenuMode = viewState === 'menu';
 
   return (
     <div
@@ -138,132 +135,103 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       }}
     >
       {/* ------------------------------------------------------------------ */}
-      {/* UNIFIED MORPHING HERO → COMPACT HEADER CONTAINER                   */}
-      {/* Shared element transition: Height, brand logo, and title morph.    */}
+      {/* 1. CONTINUOUS HERO SURFACE (Moves upward like a curtain/shutter)    */}
       {/* ------------------------------------------------------------------ */}
       <motion.div
         layout
+        initial={false}
+        animate={{
+          height: isMenuMode ? '250px' : '100svh',
+        }}
         transition={{
           duration: transitionDuration,
-          ease: [0.25, 1, 0.5, 1],
+          ease: [0.22, 1, 0.36, 1], // Smooth weighted physical easing
         }}
-        className={`relative w-full z-40 transition-colors ${
-          viewState === 'hero'
-            ? 'min-h-[92vh] sm:min-h-screen flex flex-col justify-between overflow-hidden'
-            : 'sticky top-0 bg-[#090d12]/95 backdrop-blur-xl border-b border-neutral-800/80 shadow-2xl'
-        }`}
+        className="relative w-full overflow-hidden flex flex-col justify-between"
       >
-        {/* Background Image Layer (Morphs from full photography to subtle header overlay) */}
-        <motion.div
-          layout
-          className={`absolute inset-0 z-0 overflow-hidden pointer-events-none transition-opacity duration-700 ${
-            viewState === 'hero' ? 'opacity-100' : 'opacity-25'
-          }`}
-        >
+        {/* Continuous Photographic Background Layer (Always the same image, cropped smoothly) */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
             src={restaurant.heroImage}
             alt={restaurant.name}
-            className="w-full h-full object-cover object-center filter brightness-[0.7]"
+            className="w-full h-full object-cover object-center filter brightness-[0.75] transition-all duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#090d12] via-[#090d12]/70 to-[#090d12]/40" />
-        </motion.div>
+          {/* Rich cinematic vignette gradients */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#090d12] via-[#090d12]/50 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#090d12]" />
+        </div>
 
-        {/* 1. Header Bar Area (Present in both Hero and Menu state with shared element layout) */}
-        <div className="relative z-10 w-full px-4 sm:px-6 py-3 max-w-2xl mx-auto flex items-center justify-between">
-          {/* Brand Identity (Logo + Name + Subtitle) */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <motion.div
-              layoutId="restaurant-brand-logo"
-              transition={{ duration: transitionDuration, ease: [0.25, 1, 0.5, 1] }}
-              className={`rounded-2xl overflow-hidden p-0.5 border border-amber-500/40 bg-black/50 backdrop-blur-md shadow-xl flex-shrink-0 transition-all ${
-                viewState === 'hero' ? 'w-12 h-12 sm:w-14 sm:h-14' : 'w-9 h-9 sm:w-10 sm:h-10'
-              }`}
-            >
+        {/* Top Hero Brand Header (Anchored identity in both full and short hero) */}
+        <div className="relative z-10 w-full px-4 sm:px-6 pt-4 sm:pt-5 max-w-2xl mx-auto flex items-center justify-between">
+          {/* Restaurant Identity */}
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden p-0.5 border border-amber-500/40 bg-black/60 backdrop-blur-md shadow-xl flex-shrink-0">
               <img
                 src={restaurant.logo}
                 alt={restaurant.name}
                 className="w-full h-full object-cover rounded-xl"
               />
-            </motion.div>
+            </div>
 
-            <motion.div
-              layoutId="restaurant-brand-text"
-              transition={{ duration: transitionDuration, ease: [0.25, 1, 0.5, 1] }}
-            >
-              <h1 className={`font-bold text-amber-300 tracking-tight transition-all ${
-                viewState === 'hero' ? 'text-base sm:text-lg' : 'text-sm sm:text-base text-white'
-              }`}>
+            <div>
+              <h1 className="font-bold text-amber-300 tracking-tight text-base sm:text-lg">
                 {restaurant.name}
               </h1>
-              <p className="text-[10px] sm:text-xs text-neutral-300 font-light tracking-wide flex items-center gap-1">
+              <p className="text-[11px] sm:text-xs text-neutral-300 font-light flex items-center gap-1.5">
                 <span>{restaurant.cuisine}</span>
                 <span>•</span>
                 <span>{restaurant.neighborhood}</span>
               </p>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Search Toggle in Menu State */}
-            {viewState === 'menu' && (
+          {/* Top Actions */}
+          <div className="flex items-center gap-2">
+            {isMenuMode && (
               <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={() => setShowSearch(!showSearch)}
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
-                  showSearch ? 'bg-amber-500 text-black' : 'bg-neutral-800/90 text-neutral-300 hover:bg-neutral-700'
-                }`}
-                aria-label="جستجو در منو"
-              >
-                <Search className="w-4 h-4" />
-              </motion.button>
-            )}
-
-            {/* Restaurant Info Trigger */}
-            <button
-              onClick={() => setIsInfoOpen(true)}
-              id="header-info-btn"
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 sm:bg-neutral-800/90 backdrop-blur-md border border-white/10 text-neutral-200 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
-              aria-label="اطلاعات رستوران"
-            >
-              <Info className="w-4 h-4 text-amber-300" />
-            </button>
-
-            {/* Return to Hero CTA in Menu State */}
-            {viewState === 'menu' && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={handleResetToHero}
-                id="return-to-hero-btn"
-                className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full bg-neutral-800/90 hover:bg-neutral-700 text-amber-300 text-xs font-semibold border border-amber-500/20 transition-all active:scale-95 cursor-pointer"
-                title="بازگشت به صفحه معرفی"
+                id="hero-reset-intro-btn"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 hover:bg-neutral-800 text-amber-300 text-xs font-semibold border border-amber-500/30 backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-lg"
+                title="مشاهده صفحه معرفی"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="text-[11px]">معرفی</span>
               </motion.button>
             )}
+
+            <button
+              onClick={() => setIsInfoOpen(true)}
+              id="hero-info-btn"
+              className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-neutral-200 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-lg"
+              aria-label="اطلاعات رستوران"
+            >
+              <Info className="w-4 h-4 text-amber-300" />
+            </button>
           </div>
         </div>
 
-        {/* 2. Hero Center Editorial Content (Only visible in Hero state) */}
+        {/* Center Intro Editorial Content (Exits smoothly upward when entering menu) */}
         <AnimatePresence>
-          {viewState === 'hero' && (
+          {!isMenuMode && (
             <motion.div
-              key="hero-editorial-body"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="relative z-10 w-full px-6 py-8 sm:py-12 max-w-xl mx-auto flex flex-col items-center text-center space-y-6"
+              key="hero-intro-content"
+              initial={{ opacity: 1, y: 0 }}
+              exit={{
+                opacity: 0,
+                y: -60,
+                transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+              }}
+              transition={{ duration: 0.5 }}
+              className="relative z-10 w-full px-6 py-6 max-w-xl mx-auto flex flex-col items-center text-center space-y-6 my-auto"
             >
               {/* Gold Ornament Divider */}
               <div className="flex items-center gap-2 text-amber-400 text-xs tracking-widest">
                 <span className="w-6 h-[1px] bg-amber-400/40" />
-                <span className="inline-flex items-center gap-1 font-semibold">
-                  <Sparkles className="w-3 h-3 text-amber-400" />
-                  منوی اختصاصی دیجیتال
+                <span className="inline-flex items-center gap-1.5 font-semibold">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  منوی دیجیتال
                 </span>
                 <span className="w-6 h-[1px] bg-amber-400/40" />
               </div>
@@ -291,7 +259,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               </div>
 
               {/* Primary Call to Action Button */}
-              <div className="w-full max-w-xs pt-4">
+              <div className="w-full max-w-xs pt-3">
                 <button
                   onClick={handleEnterMenu}
                   id="enter-menu-hero-btn"
@@ -302,91 +270,188 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                 </button>
               </div>
 
-              {/* Bottom hint */}
-              <div className="pt-2 text-center text-neutral-400 text-xs font-light">
-                <span>جهت مرور خوراک‌ها دکمه مشاهده منو را لمس کنید</span>
+              {/* Hint */}
+              <div className="text-neutral-400 text-xs font-light">
+                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس کنید
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* 3. Search Bar Expansion in Menu State */}
-        {viewState === 'menu' && showSearch && (
+        {/* Bottom Bar in Collapsed Short Hero State */}
+        {isMenuMode && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-4 pb-3 max-w-2xl mx-auto w-full"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="relative z-10 w-full px-4 sm:px-6 pb-4 max-w-2xl mx-auto flex items-center justify-between text-xs text-neutral-300 border-t border-white/10 pt-2"
           >
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="جستجوی نام غذا، نوشیدنی، ترکیبات..."
-                className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute left-3 top-2.5 text-xs text-neutral-400 hover:text-white"
-                >
-                  پاک کردن
-                </button>
-              )}
+            <div className="flex items-center gap-2 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
+            </div>
+            <div className="text-amber-300/90 font-medium">
+              {toPersianDigits(restaurant.categories.length)} دسته‌بندی
             </div>
           </motion.div>
-        )}
-
-        {/* 4. Compact Category Indicator & Panel Trigger (NO horizontal scrolling rail) */}
-        {viewState === 'menu' && (
-          <div className="w-full border-t border-neutral-800/60 bg-[#0c1218]/90 px-4 py-2">
-            <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
-              {/* Active Category Display & Open Sheet Button */}
-              <button
-                onClick={() => setIsCategorySheetOpen(true)}
-                id="immersive-category-capsule-btn"
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all cursor-pointer"
-              >
-                <Layers className="w-3.5 h-3.5 text-amber-400" />
-                <span>دسته‌بندی: {activeCategoryObj?.name || 'همه دسته‌ها'}</span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-
-              <div className="text-[11px] text-neutral-400 font-medium">
-                {toPersianDigits(restaurant.categories.length)} دسته • {toPersianDigits(restaurant.items.length)} آیتم
-              </div>
-            </div>
-          </div>
         )}
       </motion.div>
 
       {/* ------------------------------------------------------------------ */}
-      {/* ACTUAL MENU BODY CONTENT (Smooth slide up and staggered reveal)   */}
+      {/* 2. STICKY CATEGORY NAVIGATOR & SEARCH (Directly below short hero)  */}
       {/* ------------------------------------------------------------------ */}
-      {viewState === 'menu' && (
-        <motion.div
-          key="menu-content-stream"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut', delay: 0.15 }}
-          className="w-full min-h-screen flex flex-col pb-28"
-        >
-          <main className="max-w-2xl mx-auto w-full px-4 pt-5 space-y-10">
-            {/* If search query is active */}
-            {searchQuery ? (
-              <div className="space-y-4">
-                <h2 className="text-sm font-semibold text-neutral-400">
-                  نتایج جستجو برای «{searchQuery}» ({toPersianDigits(filteredItems.length)} مورد)
-                </h2>
-                {filteredItems.length === 0 ? (
-                  <div className="text-center py-12 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6">
-                    <p className="text-sm text-neutral-400">موردی با این مشخصات در منو یافت نشد.</p>
+      <div className="sticky top-0 z-30 bg-[#090d12]/95 backdrop-blur-xl border-y border-neutral-800/80 shadow-xl transition-all">
+        <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+          {/* Compact Category Trigger */}
+          <button
+            onClick={() => setIsCategorySheetOpen(true)}
+            id="immersive-category-capsule-btn"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all cursor-pointer shadow-sm"
+          >
+            <Layers className="w-3.5 h-3.5 text-amber-400" />
+            <span>دسته‌بندی: {activeCategoryObj?.name || 'همه دسته‌ها'}</span>
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Search Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+                showSearch ? 'bg-amber-500 text-black' : 'bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white'
+              }`}
+              aria-label="جستجو در منو"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Expandable Search Input */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="px-4 pb-3 max-w-2xl mx-auto w-full"
+            >
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="جستجوی نام غذا، نوشیدنی، ترکیبات..."
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute left-3 top-2.5 text-xs text-neutral-400 hover:text-white"
+                  >
+                    پاک کردن
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* 3. MENU CONTENT STREAM (Revealed from underneath in document flow) */}
+      {/* ------------------------------------------------------------------ */}
+      <main className="max-w-2xl mx-auto w-full px-4 pt-6 space-y-10 pb-28">
+        {/* If search query is active */}
+        {searchQuery ? (
+          <div className="space-y-4">
+            <h2 className="text-sm font-semibold text-neutral-400">
+              نتایج جستجو برای «{searchQuery}» ({toPersianDigits(filteredItems.length)} مورد)
+            </h2>
+            {filteredItems.length === 0 ? (
+              <div className="text-center py-12 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6">
+                <p className="text-sm text-neutral-400">موردی با این مشخصات در منو یافت نشد.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3.5">
+                {filteredItems.map((item) => (
+                  <EditorialItemCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    accentColor={config.accentColor}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Featured / Signature Section */}
+            {featuredItems.length > 0 && (
+              <section className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span
+                      style={{ backgroundColor: config.accentColor }}
+                      className="w-2 h-5 rounded-full inline-block"
+                    />
+                    <h2 className="text-lg font-bold text-white tracking-tight">
+                      پیشنهاد سرآشپز و برگزیده‌ها
+                    </h2>
                   </div>
-                ) : (
+                  <span className="text-xs text-amber-400 font-medium">امضای بونو</span>
+                </div>
+
+                {/* Featured Items Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {featuredItems.slice(0, 2).map((item) => (
+                    <FeaturedEditorialCard
+                      key={item.id}
+                      item={item}
+                      onSelect={setSelectedItem}
+                      accentColor={config.accentColor}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Standard Category Sections */}
+            {restaurant.categories.map((category) => {
+              const categoryItems = restaurant.items.filter(
+                (item) => item.categoryId === category.id
+              );
+              if (categoryItems.length === 0) return null;
+
+              return (
+                <section
+                  key={category.id}
+                  id={`cat-section-${category.id}`}
+                  data-category-id={category.id}
+                  className="space-y-4 pt-4 scroll-mt-20"
+                >
+                  {/* Section Header */}
+                  <div className="border-b border-neutral-800/80 pb-2.5 flex items-end justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                        <span>{category.name}</span>
+                        <span className="text-xs text-neutral-400 font-light">
+                          ({toPersianDigits(categoryItems.length)})
+                        </span>
+                      </h3>
+                      {category.nameEn && (
+                        <p className="text-[11px] text-neutral-400 font-sans tracking-wider" dir="ltr">
+                          {category.nameEn}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* List of items */}
                   <div className="grid grid-cols-1 gap-3.5">
-                    {filteredItems.map((item) => (
+                    {categoryItems.map((item) => (
                       <EditorialItemCard
                         key={item.id}
                         item={item}
@@ -395,139 +460,53 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                       />
                     ))}
                   </div>
-                )}
-              </div>
-            ) : (
-              <>
-                {/* Featured / Signature Section */}
-                {featuredItems.length > 0 && (
-                  <section className="space-y-3.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span
-                          style={{ backgroundColor: config.accentColor }}
-                          className="w-2 h-5 rounded-full inline-block"
-                        />
-                        <h2 className="text-lg font-bold text-white tracking-tight">
-                          پیشنهاد سرآشپز و برگزیده‌ها
-                        </h2>
-                      </div>
-                      <span className="text-xs text-amber-400 font-medium">امضای بونو</span>
-                    </div>
+                </section>
+              );
+            })}
+          </>
+        )}
 
-                    {/* Featured Items Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {featuredItems.slice(0, 2).map((item) => (
-                        <FeaturedEditorialCard
-                          key={item.id}
-                          item={item}
-                          onSelect={setSelectedItem}
-                          accentColor={config.accentColor}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
+        {/* Brand Footer */}
+        <footer className="pt-10 pb-16 text-center space-y-3 border-t border-neutral-800/60 mt-12">
+          <div className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-amber-500/20 bg-black/40">
+            <img src={restaurant.logo} alt={restaurant.name} className="w-full h-full object-cover rounded-lg" />
+          </div>
+          <h4 className="text-sm font-bold text-white">{restaurant.name}</h4>
+          <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">{restaurant.tagline}</p>
+          <div className="text-[11px] text-neutral-400 pt-3">
+            منوی دیجیتال طراحی شده با ویترین
+          </div>
+        </footer>
+      </main>
 
-                {/* Standard Category Sections */}
-                {restaurant.categories.map((category) => {
-                  const categoryItems = restaurant.items.filter(
-                    (item) => item.categoryId === category.id
-                  );
-                  if (categoryItems.length === 0) return null;
-
-                  return (
-                    <section
-                      key={category.id}
-                      id={`cat-section-${category.id}`}
-                      data-category-id={category.id}
-                      className="space-y-4 pt-4 scroll-mt-28"
-                    >
-                      {/* Section Header */}
-                      <div className="border-b border-neutral-800/80 pb-2.5 flex items-end justify-between">
-                        <div>
-                          <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                            <span>{category.name}</span>
-                            <span className="text-xs text-neutral-400 font-light">
-                              ({toPersianDigits(categoryItems.length)})
-                            </span>
-                          </h3>
-                          {category.nameEn && (
-                            <p className="text-[11px] text-neutral-400 font-sans tracking-wider" dir="ltr">
-                              {category.nameEn}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* List of items */}
-                      <div className="grid grid-cols-1 gap-3.5">
-                        {categoryItems.map((item) => (
-                          <EditorialItemCard
-                            key={item.id}
-                            item={item}
-                            onSelect={setSelectedItem}
-                            accentColor={config.accentColor}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  );
-                })}
-              </>
-            )}
-
-            {/* Brand Footer */}
-            <footer className="pt-10 pb-16 text-center space-y-3 border-t border-neutral-800/60 mt-12">
-              <div className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-amber-500/20 bg-black/40">
-                <img src={restaurant.logo} alt={restaurant.name} className="w-full h-full object-cover rounded-lg" />
-              </div>
-              <h4 className="text-sm font-bold text-white">{restaurant.name}</h4>
-              <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">{restaurant.tagline}</p>
-              <div className="text-[11px] text-neutral-400 pt-3">
-                منوی دیجیتال طراحی شده با ویترین
-              </div>
-            </footer>
-          </main>
-        </motion.div>
-      )}
-
-      {/* Floating Category Navigation Capsule Button in Menu View */}
-      {viewState === 'menu' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-20 right-4 z-30"
+      {/* Floating Category Navigation Capsule Button */}
+      <div className="fixed bottom-20 right-4 z-30">
+        <button
+          onClick={() => setIsCategorySheetOpen(true)}
+          id="floating-category-capsule-btn"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-900/95 backdrop-blur-md border border-amber-500/40 text-amber-300 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
         >
-          <button
-            onClick={() => setIsCategorySheetOpen(true)}
-            id="floating-category-capsule-btn"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-neutral-900/95 backdrop-blur-md border border-amber-500/40 text-amber-300 shadow-2xl active:scale-95 transition-all text-xs font-bold cursor-pointer"
-          >
-            <Layers className="w-4 h-4 text-amber-400" />
-            <span>دسته‌ها</span>
-          </button>
-        </motion.div>
-      )}
+          <Layers className="w-4 h-4 text-amber-400" />
+          <span>دسته‌ها</span>
+        </button>
+      </div>
 
       {/* Floating Back to Top Button */}
-      {viewState === 'menu' && (
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-neutral-300 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
-          aria-label="بازگشت به بالای منو"
-        >
-          <ArrowUp className="w-4 h-4" />
-        </button>
-      )}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-neutral-300 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
+        aria-label="بازگشت به بالای منو"
+      >
+        <ArrowUp className="w-4 h-4" />
+      </button>
 
-      {/* Sticky Selection Bar */}
+      {/* Sticky Customer Selection Summary Bar */}
       <MenuSelectionBar accentColor={config.accentColor} themeId="immersive" />
 
-      {/* My Selections Bottom Sheet */}
+      {/* Selections Bottom Sheet Modal */}
       <MenuSelectionSheet accentColor={config.accentColor} />
 
-      {/* All Categories Bottom Sheet */}
+      {/* All Categories Bottom Sheet Grid */}
       <CategoryBottomSheet
         isOpen={isCategorySheetOpen}
         onClose={() => setIsCategorySheetOpen(false)}
