@@ -63,8 +63,9 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
   const handleResetToHero = () => {
     setViewState('hero');
     onStateChange?.('hero');
-    if (containerRef.current) {
-      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
+    if (viewport) {
+      viewport.scrollTo({ top: 0, behavior: 'smooth' });
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -85,8 +86,8 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
     };
 
     const observer = new IntersectionObserver(observerCallback, {
-      root: null,
-      rootMargin: '-100px 0px -60% 0px',
+      root: document.getElementById('device-screen-viewport'),
+      rootMargin: '-80px 0px -60% 0px',
       threshold: 0.1,
     });
 
@@ -102,9 +103,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
     setActiveCategory(catId);
     const target = document.getElementById(`cat-section-${catId}`);
     if (target) {
-      const navHeight = 90;
-      const targetTop = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
-      window.scrollTo({ top: targetTop, behavior: 'smooth' });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -493,7 +492,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
 
       {/* Floating Back to Top Button */}
       <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        onClick={() => {
+          const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
+          if (viewport) {
+            viewport.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-neutral-900/90 backdrop-blur-md border border-neutral-700 text-neutral-300 flex items-center justify-center hover:bg-neutral-800 active:scale-95 shadow-xl transition-all"
         aria-label="بازگشت به بالای منو"
       >

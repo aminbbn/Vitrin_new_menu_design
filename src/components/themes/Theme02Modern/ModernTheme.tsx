@@ -63,8 +63,9 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
   const handleResetToHero = () => {
     setViewState('hero');
     onStateChange?.('hero');
-    if (containerRef.current) {
-      containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
+    if (viewport) {
+      viewport.scrollTo({ top: 0, behavior: 'smooth' });
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -82,7 +83,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
           }
         });
       },
-      { rootMargin: '-100px 0px -65% 0px', threshold: 0.1 }
+      { root: document.getElementById('device-screen-viewport'), rootMargin: '-80px 0px -65% 0px', threshold: 0.1 }
     );
 
     restaurant.categories.forEach((cat) => {
@@ -97,9 +98,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
     setActiveCategory(catId);
     const target = document.getElementById(`modern-cat-${catId}`);
     if (target) {
-      const navHeight = 90;
-      const top = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
-      window.scrollTo({ top, behavior: 'smooth' });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -408,7 +407,13 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
 
       {/* Floating Back to Top Button */}
       <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        onClick={() => {
+          const viewport = document.getElementById('device-screen-viewport') || containerRef.current;
+          if (viewport) {
+            viewport.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         className="fixed bottom-20 left-4 z-30 w-10 h-10 rounded-full bg-slate-900/90 backdrop-blur-md border border-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-800 active:scale-95 shadow-xl transition-all"
         aria-label="بازگشت به بالای منو"
       >
