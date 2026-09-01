@@ -47,7 +47,7 @@ export const EntranceItem: React.FC<EntranceItemProps> = ({
 }) => {
   const { hasEntered, prefersReducedMotion } = useEntranceSectionContext();
 
-  const Component = motion[as] as any;
+  const Component = (motion[as as keyof typeof motion] || motion.div) as any;
 
   if (prefersReducedMotion) {
     return (

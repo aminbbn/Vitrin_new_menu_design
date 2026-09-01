@@ -67,6 +67,75 @@ export const useHeroTransition = ({
     }, transitionDurationMs + 100);
   }, [viewState, isOverlayOpen, getScrollTop, scrollToTop, onStateChange, transitionDurationMs]);
 
+  // Scroll listener when in Menu mode: scrolling up at the top returns to Hero mode
+  useEffect(() => {
+    if (viewState !== 'menu') return;
+
+    const container = getScrollContainer();
+    const targetElement = container === window ? document : (container as HTMLElement);
+
+    if (!targetElement) return;
+
+    let touchMenuStartY: number | null = null;
+
+    // Wheel listener when at top of page
+    const handleMenuWheel = (e: Event) => {
+      const wheelEvent = e as WheelEvent;
+      if (isTransitioningRef.current || isOverlayOpen) return;
+
+      const currentScroll = getScrollTop();
+      // If user is at or very near the top and scrolling upwards
+      if (currentScroll <= 1 && wheelEvent.deltaY < -15) {
+        if (wheelEvent.cancelable) {
+          wheelEvent.preventDefault();
+        }
+        returnToHero();
+      }
+    };
+
+    // Touch listener when at top of page (pull down to reveal hero)
+    const handleMenuTouchStart = (e: Event) => {
+      const touchEvent = e as TouchEvent;
+      if (touchEvent.touches && touchEvent.touches.length > 0) {
+        touchMenuStartY = touchEvent.touches[0].clientY;
+      }
+    };
+
+    const handleMenuTouchMove = (e: Event) => {
+      const touchEvent = e as TouchEvent;
+      if (isTransitioningRef.current || isOverlayOpen || touchMenuStartY === null) return;
+
+      const currentScroll = getScrollTop();
+      if (currentScroll <= 1 && touchEvent.touches && touchEvent.touches.length > 0) {
+        const currentY = touchEvent.touches[0].clientY;
+        const deltaY = currentY - touchMenuStartY; // Positive when pulling down
+        if (deltaY > 40) {
+          if (touchEvent.cancelable) {
+            touchEvent.preventDefault();
+          }
+          touchMenuStartY = null;
+          returnToHero();
+        }
+      }
+    };
+
+    const handleMenuTouchEnd = () => {
+      touchMenuStartY = null;
+    };
+
+    targetElement.addEventListener('wheel', handleMenuWheel, { passive: false });
+    targetElement.addEventListener('touchstart', handleMenuTouchStart, { passive: true });
+    targetElement.addEventListener('touchmove', handleMenuTouchMove, { passive: false });
+    targetElement.addEventListener('touchend', handleMenuTouchEnd, { passive: true });
+
+    return () => {
+      targetElement.removeEventListener('wheel', handleMenuWheel);
+      targetElement.removeEventListener('touchstart', handleMenuTouchStart);
+      targetElement.removeEventListener('touchmove', handleMenuTouchMove);
+      targetElement.removeEventListener('touchend', handleMenuTouchEnd);
+    };
+  }, [viewState, isOverlayOpen, getScrollContainer, getScrollTop, returnToHero]);
+
   // Scroll intent listener for Wheel, Touch, and Key events while in Hero view
   useEffect(() => {
     if (viewState !== 'hero') return;

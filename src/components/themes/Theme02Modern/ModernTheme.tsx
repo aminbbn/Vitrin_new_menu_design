@@ -171,29 +171,16 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
             </div>
 
             <div>
-              <h1 className="font-bold text-white tracking-tight text-base sm:text-lg">
+              <h1 className="font-bold text-white tracking-tight text-base sm:text-lg whitespace-nowrap">
                 {restaurant.name}
               </h1>
-              <p className="text-[11px] sm:text-xs text-orange-400 font-medium">
+              <p className="text-[11px] sm:text-xs text-orange-400 font-medium whitespace-nowrap">
                 {restaurant.cuisine}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {isMenuMode && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={returnToHero}
-                id="modern-reset-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-900/80 text-orange-400 border border-orange-500/30 text-xs font-semibold hover:bg-slate-800 active:scale-95 cursor-pointer shadow whitespace-nowrap"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-[11px]">معرفی</span>
-              </motion.button>
-            )}
-
             <button
               onClick={() => setIsInfoOpen(true)}
               id="modern-header-info-btn"
@@ -205,7 +192,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
           </div>
         </EntranceItem>
 
-        {/* Hero Intro Body Content */}
+        {/* Hero Intro Body Content (Vertically Centered in Hero Viewport) */}
         <AnimatePresence>
           {!isMenuMode && (
             <motion.div
@@ -217,56 +204,60 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
               }}
               transition={{ duration: 0.5 }}
-              className="relative z-10 px-5 py-4 max-w-lg mx-auto w-full flex flex-col justify-between space-y-4 mt-auto mb-6 sm:mb-10 text-center sm:text-right"
+              className="relative z-10 px-5 py-4 max-w-lg mx-auto w-full flex-1 flex flex-col items-center justify-center text-center my-auto"
             >
-              <div className="space-y-3.5">
-                <EntranceItem index={1} className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-white">
+              {/* Main Centered Content */}
+              <div className="flex flex-col items-center space-y-3.5 w-full">
+                <EntranceItem index={1} className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-white shadow-sm">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>پذیرایی حضوری و منوی زنده فعال</span>
+                  <span>پذیرایی حضوری و سفارش آنلاین</span>
                 </EntranceItem>
 
                 <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
                   {config.hero.headline}
                 </EntranceItem>
+
                 <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light max-w-xs sm:max-w-sm">
                   {config.hero.subheadline}
                 </EntranceItem>
 
-                {/* Categories Teaser Chips */}
-                <EntranceItem index={4} className="pt-1">
-                  <div className="text-[11px] text-slate-400 font-semibold mb-2">دسته‌بندی‌های موجود در منو:</div>
-                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                    {restaurant.categories.slice(0, 4).map((c) => (
-                      <span
-                        key={c.id}
-                        className="text-xs px-3 py-1 rounded-xl bg-slate-900/90 text-slate-200 border border-slate-800 font-medium"
-                      >
-                        {c.name}
+                {/* Information Pills (Identical dimensions & weight) */}
+                <EntranceItem index={4} className="w-full max-w-sm mx-auto pt-1">
+                  <div className="grid grid-cols-2 gap-2.5 w-full">
+                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-slate-900/80 backdrop-blur-md rounded-full border border-slate-700/80 text-slate-200 text-xs font-medium overflow-hidden shadow-sm">
+                      <Clock className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
+                        {toPersianDigits(restaurant.workingHours)}
                       </span>
-                    ))}
-                    <span className="text-xs px-2.5 py-1 rounded-xl bg-slate-900/40 text-orange-400 border border-orange-500/20 font-medium">
-                      +{toPersianDigits(restaurant.categories.length - 4)} بخش دیگر
-                    </span>
+                    </div>
+                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-slate-900/80 backdrop-blur-md rounded-full border border-slate-700/80 text-slate-200 text-xs font-medium overflow-hidden shadow-sm">
+                      <MapPin className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
+                        {restaurant.neighborhood}
+                      </span>
+                    </div>
                   </div>
                 </EntranceItem>
               </div>
 
-              {/* Main Entry Button with generous breathing room */}
-              <EntranceItem index={5} className="pt-4 sm:pt-6">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => enterMenu('cta')}
-                  id="modern-enter-menu-btn"
-                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(249,115,22,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-                >
-                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </motion.button>
-              </EntranceItem>
+              {/* Lower CTA Button Container */}
+              <div className="w-full flex flex-col items-center mt-7 sm:mt-9">
+                <EntranceItem index={5} className="w-full max-w-xs">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => enterMenu('cta')}
+                    id="modern-enter-menu-btn"
+                    className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(249,115,22,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                  >
+                    <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </motion.button>
+                </EntranceItem>
 
-              <EntranceItem index={6} className="text-slate-400 text-[11px] font-light text-center">
-                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </EntranceItem>
+                <EntranceItem index={6} className="text-slate-400 text-[11px] font-light text-center mt-2.5">
+                  جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
+                </EntranceItem>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

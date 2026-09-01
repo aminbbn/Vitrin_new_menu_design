@@ -16,8 +16,8 @@ interface UseScrollEntranceOptions {
  * - Never replays animation.
  */
 export function useScrollEntrance({
-  threshold = 0.08,
-  rootMargin = '0px 0px -40px 0px',
+  threshold = 0,
+  rootMargin = '150px 0px 0px 0px',
   enabled = true,
 }: UseScrollEntranceOptions = {}) {
   const elementRef = useRef<HTMLDivElement | null>(null);
@@ -29,14 +29,13 @@ export function useScrollEntrance({
     const target = elementRef.current;
     if (!target) return;
 
-    // Check if element is already in viewport on mount (e.g. above the fold)
+    // Fast check if element or viewport exists
     const scrollContainer = viewport?.getScrollContainer?.();
     const root = scrollContainer instanceof HTMLElement ? scrollContainer : null;
 
-    // Fast check if already in view
     const rect = target.getBoundingClientRect();
     const viewportHeight = root ? root.clientHeight : window.innerHeight;
-    if (rect.top < viewportHeight && rect.bottom > 0) {
+    if (rect.top < viewportHeight + 150 && rect.bottom > -50) {
       setHasEntered(true);
       return;
     }
@@ -49,7 +48,7 @@ export function useScrollEntrance({
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting) {
+        if (entry.isIntersecting || entry.intersectionRatio > 0) {
           setHasEntered(true);
           observer.unobserve(target);
           observer.disconnect();

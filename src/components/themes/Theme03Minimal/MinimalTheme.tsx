@@ -158,29 +158,16 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
             </div>
 
             <div>
-              <h1 className="font-bold tracking-tight text-white text-base sm:text-lg">
+              <h1 className="font-bold tracking-tight text-white text-base sm:text-lg whitespace-nowrap">
                 {restaurant.name}
               </h1>
-              <p className="text-[11px] text-teal-400 font-medium">
+              <p className="text-[11px] text-teal-400 font-medium whitespace-nowrap">
                 {restaurant.cuisine}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {isMenuMode && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={returnToHero}
-                id="minimal-reset-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neutral-900 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-neutral-800 active:scale-95 cursor-pointer shadow whitespace-nowrap"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-[11px]">معرفی</span>
-              </motion.button>
-            )}
-
             <button
               onClick={() => setIsInfoOpen(true)}
               id="minimal-header-info-btn"
@@ -192,7 +179,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
           </div>
         </EntranceItem>
 
-        {/* Hero Architectural Layout */}
+        {/* Hero Architectural Layout (Vertically Centered in Hero Viewport) */}
         <AnimatePresence>
           {!isMenuMode && (
             <motion.div
@@ -204,11 +191,12 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
               }}
               transition={{ duration: 0.5 }}
-              className="relative z-10 px-5 py-4 max-w-xl mx-auto w-full flex flex-col justify-between space-y-4 mt-auto mb-6 sm:mb-10 text-right"
+              className="relative z-10 px-5 py-4 max-w-xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center my-auto"
             >
-              <div className="space-y-3.5">
-                <EntranceItem index={1} className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium">
-                  منوی رستوران و کافه
+              {/* Main Centered Content */}
+              <div className="flex flex-col items-center space-y-3.5 w-full">
+                <EntranceItem index={1} className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium shadow-sm">
+                  منوی اختصاصی رستوران و کافه
                 </EntranceItem>
 
                 <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
@@ -219,35 +207,43 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                   {config.hero.subheadline}
                 </EntranceItem>
 
-                {/* Minimal Meta Items */}
-                <EntranceItem index={4} className="pt-2 border-t border-neutral-800/80 grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-neutral-500 block text-[10px] mb-0.5">ساعات فعالیت</span>
-                    <span className="font-semibold text-neutral-200">{toPersianDigits(restaurant.workingHours)}</span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-500 block text-[10px] mb-0.5">تعداد اقلام منو</span>
-                    <span className="font-semibold text-neutral-200">{toPersianDigits(restaurant.items.length)} خوراک و نوشیدنی</span>
+                {/* Information Pills (Identical dimensions & weight) */}
+                <EntranceItem index={4} className="w-full max-w-sm mx-auto pt-1">
+                  <div className="grid grid-cols-2 gap-2.5 w-full">
+                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-neutral-900/90 backdrop-blur-md rounded-full border border-neutral-800 text-neutral-200 text-xs font-medium overflow-hidden shadow-sm">
+                      <Clock className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
+                        {toPersianDigits(restaurant.workingHours)}
+                      </span>
+                    </div>
+                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-neutral-900/90 backdrop-blur-md rounded-full border border-neutral-800 text-neutral-200 text-xs font-medium overflow-hidden shadow-sm">
+                      <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
+                        {restaurant.neighborhood}
+                      </span>
+                    </div>
                   </div>
                 </EntranceItem>
               </div>
 
-              {/* Minimalist Action Button with generous breathing room */}
-              <EntranceItem index={5} className="pt-4 sm:pt-6">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => enterMenu('cta')}
-                  id="minimal-enter-menu-btn"
-                  className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-between cursor-pointer shadow-lg shadow-teal-950/40 whitespace-nowrap"
-                >
-                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </motion.button>
-              </EntranceItem>
+              {/* Lower CTA Button Container */}
+              <div className="w-full flex flex-col items-center mt-7 sm:mt-9">
+                <EntranceItem index={5} className="w-full max-w-xs">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => enterMenu('cta')}
+                    id="minimal-enter-menu-btn"
+                    className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-teal-950/40 whitespace-nowrap"
+                  >
+                    <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </motion.button>
+                </EntranceItem>
 
-              <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light text-center">
-                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </EntranceItem>
+                <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light text-center mt-2.5">
+                  جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
+                </EntranceItem>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

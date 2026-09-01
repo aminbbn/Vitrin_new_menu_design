@@ -162,31 +162,17 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
             </div>
 
             <div>
-              <h1 className="font-bold text-amber-300 tracking-tight text-base sm:text-lg">
+              <h1 className="font-bold text-amber-300 tracking-tight text-base sm:text-lg whitespace-nowrap">
                 {restaurant.name}
               </h1>
-              <p className="text-[11px] sm:text-xs text-neutral-300 font-light">
+              <p className="text-[11px] sm:text-xs text-neutral-300 font-light whitespace-nowrap">
                 {restaurant.cuisine}
               </p>
             </div>
           </div>
 
-          {/* Top Actions: Reset button (when in menu) and Info icon button */}
+          {/* Top Actions: Info icon button */}
           <div className="flex items-center gap-2">
-            {isMenuMode && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                onClick={returnToHero}
-                id="hero-reset-intro-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 hover:bg-neutral-800 text-amber-300 text-xs font-semibold border border-amber-500/30 backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-lg whitespace-nowrap"
-                title="مشاهده صفحه معرفی"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="text-[11px]">معرفی</span>
-              </motion.button>
-            )}
-
             <button
               onClick={() => setIsInfoOpen(true)}
               id="hero-info-btn"
@@ -198,7 +184,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
           </div>
         </EntranceItem>
 
-        {/* Center Intro Editorial Content (Exits smoothly upward when entering menu) */}
+        {/* Center Intro Editorial Content (Vertically Centered in Hero Viewport) */}
         <AnimatePresence>
           {!isMenuMode && (
             <motion.div
@@ -210,57 +196,68 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                 transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
               }}
               transition={{ duration: 0.5 }}
-              className="relative z-10 w-full px-5 py-4 max-w-lg mx-auto flex flex-col items-center text-center space-y-4 mt-auto mb-6 sm:mb-10"
+              className="relative z-10 w-full px-5 py-4 max-w-lg mx-auto flex-1 flex flex-col items-center justify-center text-center my-auto"
             >
-              {/* Gold Ornament Divider */}
-              <EntranceItem index={1} className="flex items-center gap-2 text-amber-400 text-xs tracking-widest">
-                <span className="w-6 h-[1px] bg-amber-400/40" />
-                <span className="inline-flex items-center gap-1.5 font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  منوی دیجیتال
-                </span>
-                <span className="w-6 h-[1px] bg-amber-400/40" />
-              </EntranceItem>
+              {/* Main Content Block (Centered) */}
+              <div className="flex flex-col items-center space-y-3.5 w-full">
+                {/* Gold Ornament Divider */}
+                <EntranceItem index={1} className="flex items-center gap-2 text-amber-400 text-xs tracking-widest">
+                  <span className="w-6 h-[1px] bg-amber-400/40" />
+                  <span className="inline-flex items-center gap-1.5 font-semibold">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    منوی دیجیتال
+                  </span>
+                  <span className="w-6 h-[1px] bg-amber-400/40" />
+                </EntranceItem>
 
-              {/* Main Headline with intentional line layout */}
-              <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
-                {config.hero.headline}
-              </EntranceItem>
+                {/* Main Headline with intentional line layout */}
+                <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
+                  {config.hero.headline}
+                </EntranceItem>
 
-              {/* Sub-headline */}
-              <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-300 max-w-xs sm:max-w-sm leading-relaxed font-light">
-                {config.hero.subheadline}
-              </EntranceItem>
+                {/* Sub-headline */}
+                <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-300 max-w-xs sm:max-w-sm leading-relaxed font-light">
+                  {config.hero.subheadline}
+                </EntranceItem>
 
-              {/* Operational Badges */}
-              <EntranceItem index={4} className="flex items-center gap-3 pt-0.5 text-xs text-neutral-300">
-                <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 font-medium">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{toPersianDigits(restaurant.workingHours)}</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{restaurant.neighborhood}</span>
-                </div>
-              </EntranceItem>
+                {/* Operational Information Pills (Identical dimensions, same height & weight) */}
+                <EntranceItem index={4} className="w-full max-w-sm mx-auto pt-1">
+                  <div className="grid grid-cols-2 gap-2.5 w-full">
+                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full border border-white/10 text-neutral-200 text-xs font-medium overflow-hidden shadow-sm">
+                      <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
+                        {toPersianDigits(restaurant.workingHours)}
+                      </span>
+                    </div>
+                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full border border-white/10 text-neutral-200 text-xs font-medium overflow-hidden shadow-sm">
+                      <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
+                        {restaurant.neighborhood}
+                      </span>
+                    </div>
+                  </div>
+                </EntranceItem>
+              </div>
 
-              {/* Primary Call to Action Button with generous breathing room */}
-              <EntranceItem index={5} className="w-full max-w-xs pt-4 sm:pt-6">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => enterMenu('cta')}
-                  id="enter-menu-hero-btn"
-                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-bold text-sm sm:text-base shadow-[0_12px_32px_rgba(212,175,55,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
-                >
-                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
-                  <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-                </motion.button>
-              </EntranceItem>
+              {/* Lower CTA Button Container (Independent positioning lower in hero) */}
+              <div className="w-full flex flex-col items-center mt-7 sm:mt-9">
+                <EntranceItem index={5} className="w-full max-w-xs">
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => enterMenu('cta')}
+                    id="enter-menu-hero-btn"
+                    className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-bold text-sm sm:text-base shadow-[0_12px_32px_rgba(212,175,55,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
+                  >
+                    <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                    <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+                  </motion.button>
+                </EntranceItem>
 
-              {/* Hint */}
-              <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light">
-                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </EntranceItem>
+                {/* Hint */}
+                <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light mt-2.5">
+                  جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
+                </EntranceItem>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

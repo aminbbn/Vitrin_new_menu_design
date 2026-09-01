@@ -30,13 +30,13 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className={`${
             isSimulated ? 'absolute' : 'fixed'
-          } bottom-3 sm:bottom-4 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-[420px] sm:max-w-md z-40 pointer-events-auto`}
+          } bottom-3 sm:bottom-4 inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md z-40 pointer-events-auto flex justify-center`}
           dir="rtl"
         >
           <div
             onClick={() => setIsSelectionSheetOpen(true)}
             id="menu-selection-sticky-bar"
-            className="relative bg-neutral-950/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl p-3 sm:p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.85)] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group overflow-hidden"
+            className="w-full relative bg-neutral-950/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl p-3 sm:p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.85)] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group overflow-hidden"
             style={{
               borderColor: `${accentColor}50`,
             }}
