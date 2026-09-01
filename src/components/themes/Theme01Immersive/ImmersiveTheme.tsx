@@ -515,7 +515,7 @@ interface ItemCardProps {
 }
 
 const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColor }) => {
-  const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
+  const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
 
@@ -525,97 +525,45 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
       whileTap={{ scale: 0.99 }}
       onClick={() => onSelect(item)}
       id={`item-featured-${item.id}`}
-      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-row items-stretch h-[162px] group ${
+      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-row items-stretch h-[142px] group ${
         quantity > 0
-          ? 'border-amber-500/40 shadow-[0_8px_30px_rgba(212,175,55,0.14)]'
+          ? 'border-amber-500/50 shadow-[0_8px_30px_rgba(212,175,55,0.14)] ring-1 ring-amber-500/20'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
-      } ${isSoldOut ? 'opacity-70' : ''}`}
+      } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side (Right in RTL) */}
-      <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-between h-full">
+      <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full">
         {/* Row 1: Title */}
         <div className="min-w-0">
-          <h4 className="font-extrabold text-sm sm:text-base text-white group-hover:text-amber-300 transition-colors tracking-tight truncate">
+          <h4 className="font-semibold text-sm sm:text-base text-neutral-100 group-hover:text-amber-300 transition-colors tracking-tight truncate">
             {item.name}
           </h4>
         </div>
 
-        {/* Row 2: Badges & Metadata */}
-        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden py-0.5">
-          {item.badge && (
-            <span
-              style={{ backgroundColor: accentColor, color: '#000' }}
-              className="text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 whitespace-nowrap shrink-0"
-            >
-              <Sparkles className="w-3 h-3" />
-              <span className="truncate">{item.badge}</span>
-            </span>
-          )}
-          {item.isVegetarian && (
-            <span className="text-[10px] font-bold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30 whitespace-nowrap shrink-0">
-              وجترین
-            </span>
-          )}
-          {item.calories && (
-            <span className="text-[10px] text-neutral-400 font-light whitespace-nowrap shrink-0">
-              {toPersianDigits(item.calories)} کالری
-            </span>
-          )}
-        </div>
-
-        {/* Row 3: Strict Single-Line Description */}
-        <div className="min-w-0">
-          <p className="text-xs text-neutral-300/80 font-light truncate leading-normal">
+        {/* Row 2: Strict Single-Line Description */}
+        <div className="min-w-0 py-0.5">
+          <p className="text-xs text-neutral-400 font-light truncate leading-normal">
             {item.description}
           </p>
         </div>
 
-        {/* Row 4: Anchored Action & Price Row */}
-        <div className="mt-auto pt-2 border-t border-neutral-800/60 flex items-center justify-between">
-          <span className="text-sm sm:text-base font-extrabold text-amber-300 tracking-tight whitespace-nowrap">
+        {/* Row 3: Anchored Price & Discovery Indication Row */}
+        <div className="mt-auto pt-2 border-t border-neutral-800/50 flex items-center justify-between">
+          <span className="text-sm sm:text-base font-semibold text-amber-300 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
-          {/* Selection Control */}
-          {!isSoldOut && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center"
+          {quantity > 0 ? (
+            <span
+              style={{ backgroundColor: `${accentColor}18`, borderColor: `${accentColor}40`, color: accentColor }}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-full border whitespace-nowrap"
             >
-              {quantity === 0 ? (
-                <button
-                  onClick={() => addItem(item.id)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-black text-neutral-950 flex items-center gap-1 active:scale-95 transition-all cursor-pointer shadow-md"
-                  style={{ backgroundColor: accentColor }}
-                  title="افزودن به انتخاب‌ها"
-                  aria-label={`افزودن ${item.name}`}
-                >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>افزودن</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-1 bg-[#090e15] border border-amber-500/40 rounded-xl p-0.5 shadow-lg">
-                  <button
-                    onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
-                    aria-label="کاهش تعداد"
-                  >
-                    {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
-                  </button>
-                  <span className="w-5 text-center text-xs font-black text-amber-300">
-                    {toPersianDigits(quantity)}
-                  </span>
-                  <button
-                    onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg text-neutral-950 font-black flex items-center justify-center active:scale-95 transition-colors cursor-pointer"
-                    style={{ backgroundColor: accentColor }}
-                    aria-label="افزایش تعداد"
-                  >
-                    <Plus className="w-3 h-3 stroke-[2.5]" />
-                  </button>
-                </div>
-              )}
-            </div>
+              {toPersianDigits(quantity)} انتخاب شده
+            </span>
+          ) : (
+            <span className="text-[11px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light">
+              مشاهده جزئیات
+            </span>
           )}
         </div>
       </div>
@@ -632,10 +580,21 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#0d141f]/70 via-transparent to-transparent" />
 
+        {/* Floating Special Badge on Image Top Corner */}
+        {item.badge && (
+          <span
+            style={{ backgroundColor: accentColor, color: '#000' }}
+            className="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 whitespace-nowrap z-10"
+          >
+            <Sparkles className="w-2.5 h-2.5" />
+            <span className="truncate">{item.badge}</span>
+          </span>
+        )}
+
         {/* Sold Out Overlay */}
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-neutral-900/90 text-neutral-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-neutral-700 shadow-xl">
+            <span className="bg-neutral-900/90 text-neutral-300 text-[10px] font-medium px-2 py-0.5 rounded-full border border-neutral-700 shadow-xl">
               ناموجود
             </span>
           </div>
@@ -649,7 +608,7 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
 /* Subcomponent: Standard Editorial Item Card (Theme 01)                       */
 /* -------------------------------------------------------------------------- */
 const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColor }) => {
-  const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
+  const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
 
@@ -659,90 +618,51 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
       whileHover={{ y: -1 }}
       onClick={() => onSelect(item)}
       id={`item-card-${item.id}`}
-      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex gap-3.5 items-center justify-between group shadow-md h-[112px] ${
+      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex gap-3.5 items-center justify-between group shadow-md h-[106px] ${
         quantity > 0
-          ? 'border-amber-500/40 shadow-[0_4px_20px_rgba(212,175,55,0.12)]'
+          ? 'border-amber-500/45 shadow-[0_4px_20px_rgba(212,175,55,0.12)] ring-1 ring-amber-500/20'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side */}
       <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5">
-        {/* Row 1: Title + Badges */}
-        <div className="flex items-center gap-1.5 min-w-0">
-          <h4 className="font-bold text-sm sm:text-base text-white group-hover:text-amber-300 transition-colors truncate">
+        {/* Row 1: Title */}
+        <div className="min-w-0">
+          <h4 className="font-medium text-sm text-neutral-100 group-hover:text-amber-300 transition-colors truncate">
             {item.name}
           </h4>
-          {item.badge && (
-            <span
-              style={{ backgroundColor: `${accentColor}25`, color: accentColor }}
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30 whitespace-nowrap shrink-0"
-            >
-              {item.badge}
-            </span>
-          )}
-          {item.isVegetarian && (
-            <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40 whitespace-nowrap shrink-0">
-              وجترین
-            </span>
-          )}
         </div>
 
         {/* Row 2: Strict Single Line Description */}
-        <p className="text-xs text-neutral-400 font-light truncate leading-normal">
-          {item.description}
-        </p>
+        <div className="min-w-0">
+          <p className="text-xs text-neutral-400 font-light truncate leading-normal">
+            {item.description}
+          </p>
+        </div>
 
-        {/* Row 3: Price and Selection Control */}
+        {/* Row 3: Price and Subtle Indication */}
         <div className="flex items-center justify-between pt-1 border-t border-neutral-800/40">
-          <span className="text-sm sm:text-base font-extrabold text-amber-300 tracking-tight whitespace-nowrap">
+          <span className="text-sm font-semibold text-amber-300 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
-          {/* Quick Selection Stepper or Add Button */}
-          {!isSoldOut && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center"
+          {quantity > 0 ? (
+            <span
+              style={{ backgroundColor: `${accentColor}18`, borderColor: `${accentColor}35`, color: accentColor }}
+              className="text-[9px] font-medium px-2 py-0.5 rounded-full border whitespace-nowrap"
             >
-              {quantity === 0 ? (
-                <button
-                  onClick={() => addItem(item.id)}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-neutral-950 font-bold active:scale-95 transition-all shadow cursor-pointer"
-                  style={{ backgroundColor: accentColor }}
-                  title="افزودن به انتخاب‌ها"
-                  aria-label={`افزودن ${item.name}`}
-                >
-                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-                </button>
-              ) : (
-                <div className="flex items-center gap-1 bg-[#090e15] border border-amber-500/40 rounded-xl p-0.5 shadow">
-                  <button
-                    onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 cursor-pointer"
-                    aria-label="کاهش"
-                  >
-                    {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
-                  </button>
-                  <span className="w-5 text-center text-xs font-bold text-amber-300">
-                    {toPersianDigits(quantity)}
-                  </span>
-                  <button
-                    onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg text-neutral-950 font-bold flex items-center justify-center active:scale-95 cursor-pointer"
-                    style={{ backgroundColor: accentColor }}
-                    aria-label="افزایش"
-                  >
-                    <Plus className="w-3 h-3 stroke-[2.5]" />
-                  </button>
-                </div>
-              )}
-            </div>
+              {toPersianDigits(quantity)} انتخاب شده
+            </span>
+          ) : (
+            <span className="text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light">
+              جزئیات
+            </span>
           )}
         </div>
       </div>
 
-      {/* Image Thumbnail with stable dimensions */}
-      <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-neutral-950 border border-neutral-800">
+      {/* Image Thumbnail with stable dimensions & floating badge */}
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-neutral-950 border border-neutral-800">
         <img
           src={item.image}
           alt={item.name}
@@ -751,9 +671,20 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
           }`}
           loading="lazy"
         />
+
+        {/* Floating Special Badge on Image */}
+        {item.badge && (
+          <span
+            style={{ backgroundColor: accentColor, color: '#000' }}
+            className="absolute top-1 right-1 text-[8px] font-bold px-1.5 py-0.2 rounded-md shadow flex items-center gap-0.5 whitespace-nowrap z-10"
+          >
+            <span>{item.badge}</span>
+          </span>
+        )}
+
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[10px] font-bold text-neutral-300 text-center px-1">ناموجود</span>
+            <span className="text-[9px] font-medium text-neutral-300 text-center px-1">ناموجود</span>
           </div>
         )}
       </div>

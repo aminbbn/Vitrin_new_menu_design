@@ -449,6 +449,17 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
 };
 
 /* -------------------------------------------------------------------------- */
+/* Card Props Definition                                                      */
+/* -------------------------------------------------------------------------- */
+interface ModernCardProps {
+  item: MenuItem;
+  isFavorite: boolean;
+  onToggleFavorite: (e: React.MouseEvent) => void;
+  onSelect: (item: MenuItem) => void;
+  accentColor: string;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Subcomponent: Modern Featured Lead Card (Theme 02: Rhythm & Highlight)     */
 /* -------------------------------------------------------------------------- */
 const ModernFeaturedCard: React.FC<ModernCardProps> = ({
@@ -458,7 +469,7 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
   onSelect,
   accentColor,
 }) => {
-  const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
+  const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
 
@@ -466,17 +477,17 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
     <div
       onClick={() => onSelect(item)}
       id={`modern-featured-${item.id}`}
-      className={`relative bg-[#0e131d]/90 hover:bg-[#121824]/95 border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group shadow-lg flex flex-row items-stretch h-[160px] ${
+      className={`relative bg-[#0e131d]/90 hover:bg-[#121824]/95 border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group shadow-lg flex flex-row items-stretch h-[142px] ${
         quantity > 0
-          ? 'border-orange-500/50 shadow-[0_4px_25px_rgba(249,115,22,0.15)]'
+          ? 'border-orange-500/50 shadow-[0_4px_25px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20'
           : 'border-slate-800/80 hover:border-slate-700/80'
-      } ${isSoldOut ? 'opacity-70' : ''}`}
+      } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side (Right in RTL) */}
-      <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-between h-full">
+      <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full">
         {/* Row 1: Title & Favorite Button */}
         <div className="flex items-center justify-between gap-1.5 min-w-0">
-          <h4 className="font-black text-sm sm:text-base text-white group-hover:text-orange-400 transition-colors truncate">
+          <h4 className="font-semibold text-sm sm:text-base text-neutral-100 group-hover:text-orange-400 transition-colors tracking-tight truncate">
             {item.name}
           </h4>
           <button
@@ -492,71 +503,27 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
           </button>
         </div>
 
-        {/* Row 2: Badges & Metadata */}
-        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden py-0.5">
-          {item.badge && (
-            <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap shrink-0">
-              {item.badge}
-            </span>
-          )}
-          {item.isVegetarian && (
-            <span className="bg-emerald-950/80 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 whitespace-nowrap shrink-0">
-              وجترین
-            </span>
-          )}
-          {item.calories && (
-            <span className="text-[10px] text-slate-400 font-light whitespace-nowrap shrink-0">
-              {toPersianDigits(item.calories)} کالری
-            </span>
-          )}
-        </div>
-
-        {/* Row 3: Strict Single-Line Description */}
-        <div className="min-w-0">
+        {/* Row 2: Strict Single-Line Description */}
+        <div className="min-w-0 py-0.5">
           <p className="text-xs text-slate-400 font-light truncate leading-normal">
             {item.description}
           </p>
         </div>
 
-        {/* Row 4: Anchored Action & Price Row */}
-        <div className="mt-auto pt-2 border-t border-slate-800/60 flex items-center justify-between">
-          <span className="text-sm sm:text-base font-extrabold text-orange-400 tracking-tight whitespace-nowrap">
+        {/* Row 3: Anchored Price & Discovery Indication Row */}
+        <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center justify-between">
+          <span className="text-sm sm:text-base font-semibold text-orange-400 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
-          {!isSoldOut && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center"
-            >
-              {quantity === 0 ? (
-                <button
-                  onClick={() => addItem(item.id)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-orange-500 hover:bg-orange-400 text-white flex items-center gap-1 active:scale-95 transition-all shadow cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>افزودن</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-1 bg-slate-950 border border-orange-500/40 rounded-xl p-0.5 shadow">
-                  <button
-                    onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-slate-800 text-white flex items-center justify-center active:scale-95"
-                  >
-                    {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
-                  </button>
-                  <span className="w-5 text-center text-xs font-black text-orange-400">
-                    {toPersianDigits(quantity)}
-                  </span>
-                  <button
-                    onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-orange-500 text-white font-bold flex items-center justify-center active:scale-95"
-                  >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </button>
-                </div>
-              )}
-            </div>
+          {quantity > 0 ? (
+            <span className="text-[10px] font-medium text-orange-400 bg-orange-950/60 border border-orange-500/30 px-2 py-0.5 rounded-full whitespace-nowrap">
+              {toPersianDigits(quantity)} انتخاب شده
+            </span>
+          ) : (
+            <span className="text-[11px] text-slate-500 group-hover:text-slate-300 transition-colors font-light">
+              مشاهده جزئیات
+            </span>
           )}
         </div>
       </div>
@@ -573,9 +540,16 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#0e131d]/70 via-transparent to-transparent" />
 
+        {/* Floating Special Badge on Image Top Corner */}
+        {item.badge && (
+          <span className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md whitespace-nowrap z-10">
+            {item.badge}
+          </span>
+        )}
+
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-slate-900/90 text-slate-300 text-[10px] font-bold px-2 py-1 rounded-full border border-slate-700">
+            <span className="bg-slate-900/90 text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded-full border border-slate-700">
               ناموجود
             </span>
           </div>
@@ -588,14 +562,6 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
 /* -------------------------------------------------------------------------- */
 /* Subcomponent: Modern Compact Horizontal Card (Theme 02: Scan First)        */
 /* -------------------------------------------------------------------------- */
-interface ModernCardProps {
-  item: MenuItem;
-  isFavorite: boolean;
-  onToggleFavorite: (e: React.MouseEvent) => void;
-  onSelect: (item: MenuItem) => void;
-  accentColor: string;
-}
-
 const ModernItemCard: React.FC<ModernCardProps> = ({
   item,
   isFavorite,
@@ -603,7 +569,7 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
   onSelect,
   accentColor,
 }) => {
-  const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
+  const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
 
@@ -611,31 +577,19 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
     <div
       onClick={() => onSelect(item)}
       id={`modern-item-${item.id}`}
-      className={`relative bg-[#0e131d]/80 hover:bg-[#121824]/90 border rounded-2xl p-3 transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group shadow-sm h-[112px] ${
+      className={`relative bg-[#0e131d]/80 hover:bg-[#121824]/90 border rounded-2xl p-3 transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group shadow-sm h-[106px] ${
         quantity > 0
-          ? 'border-orange-500/50 shadow-[0_2px_15px_rgba(249,115,22,0.12)]'
+          ? 'border-orange-500/50 shadow-[0_2px_15px_rgba(249,115,22,0.12)] ring-1 ring-orange-500/20'
           : 'border-slate-800/80 hover:border-slate-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side */}
       <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5">
-        {/* Row 1: Title + Badges + Favorite */}
+        {/* Row 1: Title + Favorite */}
         <div className="flex items-center justify-between gap-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h4 className="font-black text-sm text-white group-hover:text-orange-400 transition-colors truncate">
-              {item.name}
-            </h4>
-            {item.badge && (
-              <span className="bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[9px] font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
-                {item.badge}
-              </span>
-            )}
-            {item.isVegetarian && (
-              <span className="text-[9px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/30 whitespace-nowrap shrink-0">
-                وجترین
-              </span>
-            )}
-          </div>
+          <h4 className="font-medium text-sm text-neutral-100 group-hover:text-orange-400 transition-colors truncate">
+            {item.name}
+          </h4>
 
           <button
             onClick={onToggleFavorite}
@@ -651,58 +605,32 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
         </div>
 
         {/* Row 2: Strict Single-Line Description */}
-        <p className="text-xs text-slate-400 font-light truncate leading-normal">
-          {item.description}
-        </p>
+        <div className="min-w-0">
+          <p className="text-xs text-slate-400 font-light truncate leading-normal">
+            {item.description}
+          </p>
+        </div>
 
-        {/* Row 3: Price & Selection Control Row */}
+        {/* Row 3: Price & Subtle Indication Row */}
         <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
-          <span className="text-sm font-black text-orange-400 tracking-tight whitespace-nowrap">
+          <span className="text-sm font-semibold text-orange-400 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
-          {!isSoldOut && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center"
-            >
-              {quantity === 0 ? (
-                <button
-                  onClick={() => addItem(item.id)}
-                  className="px-2.5 py-1 rounded-xl text-xs font-black bg-orange-500 hover:bg-orange-400 text-white flex items-center gap-1 active:scale-95 transition-all shadow-sm cursor-pointer"
-                  aria-label={`افزودن ${item.name}`}
-                >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>افزودن</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-1 bg-slate-950 border border-orange-500/40 rounded-xl p-0.5 shadow">
-                  <button
-                    onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-slate-800 text-white flex items-center justify-center active:scale-95 cursor-pointer"
-                    aria-label="کاهش"
-                  >
-                    {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
-                  </button>
-                  <span className="w-5 text-center text-xs font-black text-orange-400">
-                    {toPersianDigits(quantity)}
-                  </span>
-                  <button
-                    onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-orange-500 text-white font-bold flex items-center justify-center active:scale-95 cursor-pointer"
-                    aria-label="افزایش"
-                  >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </button>
-                </div>
-              )}
-            </div>
+          {quantity > 0 ? (
+            <span className="text-[9px] font-medium text-orange-400 bg-orange-950/50 border border-orange-500/30 px-2 py-0.5 rounded-full whitespace-nowrap">
+              {toPersianDigits(quantity)} انتخاب شده
+            </span>
+          ) : (
+            <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors font-light">
+              جزئیات
+            </span>
           )}
         </div>
       </div>
 
-      {/* Product Image on Left side (RTL) */}
-      <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
+      {/* Product Image on Left side (RTL) & floating badge */}
+      <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
         <img
           src={item.image}
           alt={item.name}
@@ -711,9 +639,17 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
           }`}
           loading="lazy"
         />
+
+        {/* Floating Special Badge on Image */}
+        {item.badge && (
+          <span className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.2 rounded-md shadow whitespace-nowrap z-10">
+            {item.badge}
+          </span>
+        )}
+
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[10px] font-bold text-slate-300 text-center px-1">ناموجود</span>
+            <span className="text-[9px] font-medium text-slate-300 text-center px-1">ناموجود</span>
           </div>
         )}
       </div>

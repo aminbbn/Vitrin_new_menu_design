@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../context/MenuViewportContext';
+import { OverlayPortal } from './OverlayPortal';
 
 interface ScrollToTopButtonProps {
   accentColor?: string;
@@ -80,46 +81,48 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
 
   const isSelectionActive = totalCount > 0;
 
-  // Dynamic bottom offset: sits close to bottom (14px) when no selection bar,
+  // Dynamic bottom offset: sits close to bottom (16px) when no selection bar,
   // or raised to 78px when the sticky selection bar is visible.
-  const bottomPosition = isSelectionActive ? 78 : 14;
+  const bottomPosition = isSelectionActive ? 78 : 16;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.button
-          key="scroll-to-top"
-          initial={{ opacity: 0, scale: 0.8, y: 12 }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            bottom: bottomPosition,
-          }}
-          exit={{ opacity: 0, scale: 0.8, y: 12 }}
-          transition={{
-            type: 'spring',
-            damping: 24,
-            stiffness: 300,
-            mass: 0.8,
-          }}
-          onClick={scrollToTop}
-          id="scroll-to-top-btn"
-          className={`${
-            isSimulated ? 'fixed' : 'fixed'
-          } left-3.5 sm:left-4 z-30 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-colors cursor-pointer border backdrop-blur-md ${
-            themeId === 'modern'
-              ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
-              : themeId === 'minimal'
-              ? 'bg-[#0d1317]/90 hover:bg-neutral-800 border-neutral-700 text-teal-300'
-              : 'bg-neutral-900/90 hover:bg-neutral-800 border-neutral-700 text-amber-300'
-          }`}
-          aria-label="بازگشت به بالای منو"
-          title="بازگشت به بالا"
-        >
-          <ArrowUp className="w-4 h-4 stroke-[2.2]" />
-        </motion.button>
-      )}
-    </AnimatePresence>
+    <OverlayPortal>
+      <AnimatePresence>
+        {isVisible && (
+          <motion.button
+            key="scroll-to-top"
+            initial={{ opacity: 0, scale: 0.8, y: 12 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              bottom: bottomPosition,
+            }}
+            exit={{ opacity: 0, scale: 0.8, y: 12 }}
+            transition={{
+              type: 'spring',
+              damping: 24,
+              stiffness: 300,
+              mass: 0.8,
+            }}
+            onClick={scrollToTop}
+            id="scroll-to-top-btn"
+            className={`${
+              isSimulated ? 'absolute' : 'fixed'
+            } left-4 z-40 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-colors cursor-pointer border backdrop-blur-md pointer-events-auto ${
+              themeId === 'modern'
+                ? 'bg-slate-900/95 hover:bg-slate-800 border-slate-700 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
+                : themeId === 'minimal'
+                ? 'bg-[#0d1317]/95 hover:bg-neutral-800 border-neutral-700 text-teal-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
+                : 'bg-neutral-900/95 hover:bg-neutral-800 border-neutral-700 text-amber-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
+            }`}
+            aria-label="بازگشت به بالای منو"
+            title="بازگشت به بالا"
+          >
+            <ArrowUp className="w-4 h-4 stroke-[2.2]" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </OverlayPortal>
   );
 };

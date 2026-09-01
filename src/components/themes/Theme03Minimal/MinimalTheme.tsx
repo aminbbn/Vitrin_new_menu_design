@@ -418,7 +418,7 @@ interface MinimalItemProps {
 }
 
 const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColor }) => {
-  const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
+  const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
 
@@ -426,44 +426,44 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
     <div
       onClick={() => onSelect(item)}
       id={`minimal-item-${item.id}`}
-      className={`py-3 px-2.5 rounded-xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
+      className={`py-3 px-3 rounded-2xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
         quantity > 0
-          ? 'bg-teal-950/20 border-r-2 border-teal-400/90 pl-3'
-          : 'hover:bg-neutral-900/50'
+          ? 'bg-teal-950/25 border border-teal-500/30'
+          : 'hover:bg-neutral-900/60'
       } ${isSoldOut ? 'opacity-55' : ''}`}
     >
       {/* Content Side */}
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <h4 className="font-semibold text-sm sm:text-base text-white group-hover:text-teal-300 transition-colors truncate">
-              {item.name}
-            </h4>
-            {item.badge && (
-              <span className="text-[10px] text-teal-300 bg-teal-950/70 px-1.5 py-0.5 rounded border border-teal-700/40 whitespace-nowrap shrink-0">
-                {item.badge}
-              </span>
-            )}
-            {item.isVegetarian && (
-              <span className="text-[10px] text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-800/40 whitespace-nowrap shrink-0">
-                وجترین
-              </span>
-            )}
-          </div>
+      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+        {/* Row 1: Title & Price */}
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <h4 className="font-medium text-sm text-neutral-100 group-hover:text-teal-300 transition-colors truncate">
+            {item.name}
+          </h4>
 
-          <div className="text-xs sm:text-sm font-bold text-teal-300 shrink-0 tracking-tight whitespace-nowrap">
+          <span className="text-sm font-semibold text-teal-300 shrink-0 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
-          </div>
+          </span>
         </div>
 
-        {/* Strict Single-Line Description */}
-        <p className="text-xs text-neutral-400 font-light truncate leading-normal">
-          {item.description}
-        </p>
+        {/* Row 2: Strict Single-Line Description */}
+        <div className="min-w-0 mt-1">
+          <p className="text-xs text-neutral-400 font-light truncate leading-normal">
+            {item.description}
+          </p>
+        </div>
+
+        {/* Row 3: Subtle Quantity or Detail Indication */}
+        {quantity > 0 && (
+          <div className="mt-1.5 flex items-center">
+            <span className="text-[9px] font-medium text-teal-300 bg-teal-950/60 border border-teal-500/30 px-2 py-0.2 rounded-full whitespace-nowrap">
+              {toPersianDigits(quantity)} انتخاب شده
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Clean Architectural Thumbnail */}
-      <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-neutral-950 shrink-0 border border-neutral-800">
+      {/* Clean Architectural Thumbnail & Floating Badge */}
+      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-neutral-950 shrink-0 border border-neutral-800">
         <img
           src={item.image}
           alt={item.name}
@@ -472,48 +472,20 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
           }`}
           loading="lazy"
         />
+
+        {/* Floating Special Badge on Image */}
+        {item.badge && (
+          <span className="absolute top-1 right-1 bg-teal-400 text-neutral-950 text-[8px] font-bold px-1.5 py-0.2 rounded shadow whitespace-nowrap z-10">
+            {item.badge}
+          </span>
+        )}
+
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[9px] font-bold text-neutral-300">ناموجود</span>
+            <span className="text-[9px] font-medium text-neutral-300">ناموجود</span>
           </div>
         )}
       </div>
-
-      {/* Selection Control (Zero layout shift) */}
-      {!isSoldOut && (
-        <div onClick={(e) => e.stopPropagation()} className="flex items-center shrink-0">
-          {quantity === 0 ? (
-            <button
-              onClick={() => addItem(item.id)}
-              className="w-8 h-8 rounded-lg bg-neutral-900/90 border border-neutral-700 hover:border-teal-400 text-neutral-300 hover:text-teal-300 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm"
-              title="افزودن به انتخاب‌ها"
-              aria-label={`افزودن ${item.name}`}
-            >
-              <Plus className="w-4 h-4 stroke-[2]" />
-            </button>
-          ) : (
-            <div className="flex items-center gap-1 bg-[#090d10] border border-teal-500/40 rounded-lg p-0.5 shadow">
-              <button
-                onClick={() => decreaseItem(item.id)}
-                className="w-6 h-6 rounded bg-neutral-800 hover:bg-neutral-700 text-white flex items-center justify-center active:scale-95 cursor-pointer"
-                aria-label="کاهش"
-              >
-                {quantity === 1 ? <Trash2 className="w-3 h-3 text-rose-400" /> : <Minus className="w-3 h-3" />}
-              </button>
-              <span className="w-5 text-center text-xs font-bold text-teal-300">
-                {toPersianDigits(quantity)}
-              </span>
-              <button
-                onClick={() => addItem(item.id)}
-                className="w-6 h-6 rounded bg-teal-400 text-neutral-950 font-bold flex items-center justify-center active:scale-95 cursor-pointer"
-                aria-label="افزایش"
-              >
-                <Plus className="w-3 h-3 stroke-[2.5]" />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
