@@ -27,6 +27,8 @@ import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import { useHeroTransition } from '../../../hooks/useHeroTransition';
 import { EntranceSection, EntranceItem } from '../../../motion';
+import { HeroInfoPills } from '../../common/HeroInfoPills';
+import { SafeImage } from '../../common/SafeImage';
 
 
 interface ModernThemeProps {
@@ -192,89 +194,91 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
           </div>
         </EntranceItem>
 
-        {/* Hero Intro Body Content (Vertically Centered in Hero Viewport) */}
+        {/* Hero Intro Body Content (Independently Centered at 50% of Hero Viewport) */}
         <AnimatePresence>
           {!isMenuMode && (
             <motion.div
-              key="modern-hero-body"
+              key="modern-hero-center-content"
               initial={{ opacity: 1, y: 0 }}
               exit={{
                 opacity: 0,
-                y: -60,
-                transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                y: -40,
+                transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
               }}
-              transition={{ duration: 0.5 }}
-              className="relative z-10 px-5 py-4 max-w-lg mx-auto w-full flex-1 flex flex-col items-center justify-center text-center my-auto"
+              transition={{ duration: 0.45 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-5 z-10 flex flex-col items-center text-center space-y-3.5 pointer-events-auto"
             >
-              {/* Main Centered Content */}
-              <div className="flex flex-col items-center space-y-3.5 w-full">
-                <EntranceItem index={1} className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-white shadow-sm">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>پذیرایی حضوری و سفارش آنلاین</span>
-                </EntranceItem>
+              <EntranceItem index={1} className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-white shadow-sm">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>پذیرایی حضوری و سفارش آنلاین</span>
+              </EntranceItem>
 
-                <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
-                  {config.hero.headline}
-                </EntranceItem>
+              <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
+                {config.hero.headline}
+              </EntranceItem>
 
-                <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light max-w-xs sm:max-w-sm">
-                  {config.hero.subheadline}
-                </EntranceItem>
+              <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light max-w-xs sm:max-w-sm">
+                {config.hero.subheadline}
+              </EntranceItem>
 
-                {/* Information Pills (Identical dimensions & weight) */}
-                <EntranceItem index={4} className="w-full max-w-sm mx-auto pt-1">
-                  <div className="grid grid-cols-2 gap-2.5 w-full">
-                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-slate-900/80 backdrop-blur-md rounded-full border border-slate-700/80 text-slate-200 text-xs font-medium overflow-hidden shadow-sm">
-                      <Clock className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
-                        {toPersianDigits(restaurant.workingHours)}
-                      </span>
-                    </div>
-                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-slate-900/80 backdrop-blur-md rounded-full border border-slate-700/80 text-slate-200 text-xs font-medium overflow-hidden shadow-sm">
-                      <MapPin className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
-                        {restaurant.neighborhood}
-                      </span>
-                    </div>
-                  </div>
-                </EntranceItem>
-              </div>
-
-              {/* Lower CTA Button Container */}
-              <div className="w-full flex flex-col items-center mt-7 sm:mt-9">
-                <EntranceItem index={5} className="w-full max-w-xs">
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => enterMenu('cta')}
-                    id="modern-enter-menu-btn"
-                    className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(249,115,22,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-                  >
-                    <span className="whitespace-nowrap">{config.hero.ctaText}</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </motion.button>
-                </EntranceItem>
-
-                <EntranceItem index={6} className="text-slate-400 text-[11px] font-light text-center mt-2.5">
-                  جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-                </EntranceItem>
-              </div>
+              {/* Interactive Expandable Information Pills */}
+              <EntranceItem index={4} className="w-full pt-1">
+                <HeroInfoPills
+                  workingHours={restaurant.workingHours}
+                  location={restaurant.neighborhood}
+                  themeId="modern"
+                />
+              </EntranceItem>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Collapsed Short Hero Status Bar */}
+        {/* Lower CTA Button Container (Independently Anchored Near Bottom Portion) */}
+        <AnimatePresence>
+          {!isMenuMode && (
+            <motion.div
+              key="modern-hero-bottom-cta"
+              initial={{ opacity: 1, y: 0 }}
+              exit={{
+                opacity: 0,
+                y: 30,
+                transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+              }}
+              transition={{ duration: 0.45 }}
+              className="absolute bottom-6 sm:bottom-9 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-10 flex flex-col items-center pointer-events-auto"
+            >
+              <EntranceItem index={5} className="w-full">
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => enterMenu('cta')}
+                  id="modern-enter-menu-btn"
+                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(249,115,22,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+                >
+                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </motion.button>
+              </EntranceItem>
+
+              <EntranceItem index={6} className="text-slate-400 text-[11px] font-light text-center mt-2.5 whitespace-nowrap">
+                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
+              </EntranceItem>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Collapsed Short Hero Status Bar (Balanced Grid, Single Line Guaranteed) */}
         {isMenuMode && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            className="relative z-10 w-full px-4 sm:px-6 pb-3 max-w-2xl mx-auto flex items-center justify-between text-xs text-slate-300 border-t border-white/10 pt-2"
+            className="relative z-10 w-full px-4 sm:px-6 pb-3 max-w-2xl mx-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center text-xs text-slate-300 border-t border-white/10 pt-2"
           >
-            <div className="flex items-center gap-2 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
+            <div className="flex items-center gap-2 font-medium min-w-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="truncate whitespace-nowrap">پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
             </div>
-            <div className="text-orange-400 font-medium">
+            <div className="text-orange-400 font-medium shrink-0 whitespace-nowrap">
               {toPersianDigits(restaurant.items.length)} آیتم منو
             </div>
           </motion.div>
@@ -359,8 +363,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
               dataCategoryId={category.id}
               className="space-y-4 scroll-mt-20"
             >
-              {/* Category Functional Header */}
-              <EntranceItem index={0} className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              {/* Category Functional Header: Static, never hidden */}
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
                 <div className="flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
                   <h3 className="font-black text-base sm:text-lg text-white">
@@ -370,11 +374,11 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 <span className="text-xs text-orange-400/90 font-bold bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-full">
                   {toPersianDigits(items.length)} خوراک
                 </span>
-              </EntranceItem>
+              </div>
 
               {/* Optional Featured Lead Card for Section Rhythm */}
               {featuredItem && !searchQuery && (
-                <EntranceItem index={1} className="mb-3">
+                <EntranceItem index={0} className="mb-3">
                   <ModernFeaturedCard
                     item={featuredItem}
                     isFavorite={favorites.has(featuredItem.id)}
@@ -389,7 +393,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
               <div className={`grid gap-3 ${isWideLayout ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {standardItems.map((item, idx) => {
                   const isFav = favorites.has(item.id);
-                  const itemIndex = (featuredItem && !searchQuery) ? idx + 2 : idx + 1;
+                  const itemIndex = (featuredItem && !searchQuery) ? idx + 1 : idx;
                   return (
                     <EntranceItem key={item.id} index={itemIndex}>
                       <ModernItemCard
@@ -525,13 +529,13 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
 
       {/* Food Photography Side (Left in RTL, ~36% width) */}
       <div className="w-[36%] shrink-0 relative overflow-hidden bg-slate-950">
-        <img
+        <SafeImage
           src={item.image}
           alt={item.name}
           className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out ${
             isSoldOut ? 'grayscale contrast-75' : ''
           }`}
-          loading="lazy"
+          fallbackIconClassName="w-6 h-6 text-slate-600"
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#0e131d]/70 via-transparent to-transparent" />
 
@@ -617,15 +621,15 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
         </div>
       </div>
 
-      {/* Product Image on Left side (RTL) */}
+      {/* Product Image on Left side (RTL) with SafeImage */}
       <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
-        <img
+        <SafeImage
           src={item.image}
           alt={item.name}
           className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
             isSoldOut ? 'grayscale contrast-75' : ''
           }`}
-          loading="lazy"
+          fallbackIconClassName="w-5 h-5 text-slate-600"
         />
 
         {isSoldOut && (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
@@ -17,71 +17,101 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
 }) => {
   const { totalCount, totalPrice, setIsSelectionSheetOpen } = useMenuSelection();
   const { isSimulated } = useMenuViewport();
+  const barRef = useRef<HTMLDivElement>(null);
 
-  if (totalCount === 0) return null;
+  // Dynamically broadcast the actual selection bar height via CSS variable to coordinate with ScrollToTopButton
+  useLayoutEffect(() => {
+    const rootEl = isSimulated
+      ? document.getElementById('device-screen-viewport') || document.documentElement
+      : document.documentElement;
+
+    if (totalCount > 0 && barRef.current) {
+      const updateHeight = () => {
+        if (barRef.current) {
+          const height = barRef.current.offsetHeight;
+          rootEl.style.setProperty('--vitrin-selection-bar-height', `${height}px`);
+        }
+      };
+
+      updateHeight();
+      const ro = new ResizeObserver(updateHeight);
+      ro.observe(barRef.current);
+
+      return () => {
+        ro.disconnect();
+        rootEl.style.setProperty('--vitrin-selection-bar-height', '0px');
+      };
+    } else {
+      rootEl.style.setProperty('--vitrin-selection-bar-height', '0px');
+    }
+  }, [totalCount, isSimulated]);
 
   return (
     <OverlayPortal>
       <AnimatePresence>
-        <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className={`${
-            isSimulated ? 'absolute' : 'fixed'
-          } bottom-3 sm:bottom-4 inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md z-40 pointer-events-auto flex justify-center`}
-          dir="rtl"
-        >
-          <div
-            onClick={() => setIsSelectionSheetOpen(true)}
-            id="menu-selection-sticky-bar"
-            className="w-full relative bg-neutral-950/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl p-3 sm:p-3.5 shadow-[0_12px_36px_rgba(0,0,0,0.85)] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group overflow-hidden"
-            style={{
-              borderColor: `${accentColor}50`,
-            }}
+        {totalCount > 0 && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+            className={`${
+              isSimulated ? 'absolute' : 'fixed'
+            } bottom-3 sm:bottom-4 inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md z-40 pointer-events-auto flex justify-center`}
+            dir="rtl"
           >
-            {/* Subtle Glow Accent */}
             <div
-              className="absolute top-0 right-0 w-32 h-full opacity-15 pointer-events-none blur-xl"
-              style={{ backgroundColor: accentColor }}
-            />
-
-            {/* Left / Info Side */}
-            <div className="flex items-center gap-3">
-              {/* Badge Count */}
+              ref={barRef}
+              onClick={() => setIsSelectionSheetOpen(true)}
+              id="menu-selection-sticky-bar"
+              className="w-full relative bg-neutral-950/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl p-3 shadow-[0_12px_36px_rgba(0,0,0,0.85)] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group overflow-hidden select-none"
+              style={{
+                borderColor: `${accentColor}50`,
+              }}
+            >
+              {/* Subtle Glow Accent */}
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-md text-neutral-950 shrink-0"
+                className="absolute top-0 right-0 w-32 h-full opacity-15 pointer-events-none blur-xl"
                 style={{ backgroundColor: accentColor }}
-              >
-                <span className="leading-none">{toPersianDigits(totalCount)}</span>
+              />
+
+              {/* Info Side (Right in RTL) */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 pl-2">
+                {/* Badge Count */}
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-md text-neutral-950 shrink-0"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  <span className="leading-none">{toPersianDigits(totalCount)}</span>
+                </div>
+
+                {/* Text Block: Strictly Single Line */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1 text-xs text-neutral-300 font-medium whitespace-nowrap truncate">
+                    <span>انتخاب‌های من</span>
+                    <span className="text-[11px] text-neutral-400 font-light shrink-0">
+                      ({toPersianDigits(totalCount)} مورد)
+                    </span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-semibold text-white tracking-tight whitespace-nowrap truncate">
+                    {formatToman(totalPrice)}
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-neutral-300 font-medium">انتخاب‌های من</span>
-                  <span className="text-[11px] text-neutral-400">
-                    ({toPersianDigits(totalCount)} مورد)
-                  </span>
-                </div>
-                <div className="text-sm sm:text-base font-semibold text-white tracking-tight">
-                  {formatToman(totalPrice)}
-                </div>
+              {/* Action Button: Compact, Single-line, Shrink-0 */}
+              <div className="shrink-0 flex items-center">
+                <span
+                  className="text-xs font-bold px-3 py-2 rounded-xl text-neutral-950 shadow-sm flex items-center gap-1 group-hover:brightness-110 active:scale-95 transition-all whitespace-nowrap"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  <span>مشاهده</span>
+                  <ChevronLeft className="w-3.5 h-3.5 -mr-0.5" />
+                </span>
               </div>
             </div>
-
-            {/* Right Action Button */}
-            <div className="flex items-center gap-1.5 pl-1">
-              <span
-                className="text-xs font-bold px-3.5 py-2 rounded-xl text-neutral-950 shadow-sm flex items-center gap-1 group-hover:brightness-110 transition-all"
-                style={{ backgroundColor: accentColor }}
-              >
-                <span>مشاهده انتخاب‌ها</span>
-                <ChevronLeft className="w-4 h-4 -mr-0.5" />
-              </span>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </OverlayPortal>
   );

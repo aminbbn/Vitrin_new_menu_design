@@ -81,10 +81,6 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
 
   const isSelectionActive = totalCount > 0;
 
-  // Dynamic bottom offset: sits close to bottom (16px) when no selection bar,
-  // or raised to 78px when the sticky selection bar is visible.
-  const bottomPosition = isSelectionActive ? 78 : 16;
-
   return (
     <OverlayPortal>
       <AnimatePresence>
@@ -96,7 +92,6 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
               opacity: 1,
               scale: 1,
               y: 0,
-              bottom: isSelectionActive ? 90 : 20,
             }}
             exit={{ opacity: 0, scale: 0.8, y: 12 }}
             transition={{
@@ -107,9 +102,14 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
             }}
             onClick={scrollToTop}
             id="scroll-to-top-btn"
+            style={{
+              bottom: isSelectionActive
+                ? 'calc(var(--vitrin-selection-bar-height, 68px) + 26px)'
+                : '20px',
+            }}
             className={`${
               isSimulated ? 'absolute' : 'fixed'
-            } left-4 sm:left-6 z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-colors cursor-pointer border backdrop-blur-md pointer-events-auto ${
+            } left-4 sm:left-6 z-40 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-all cursor-pointer border backdrop-blur-md pointer-events-auto ${
               themeId === 'modern'
                 ? 'bg-slate-900/95 hover:bg-slate-800 border-slate-700 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
                 : themeId === 'minimal'

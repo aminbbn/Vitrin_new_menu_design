@@ -26,6 +26,8 @@ import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import { useHeroTransition } from '../../../hooks/useHeroTransition';
 import { EntranceSection, EntranceItem } from '../../../motion';
+import { HeroInfoPills } from '../../common/HeroInfoPills';
+import { SafeImage } from '../../common/SafeImage';
 
 
 interface MinimalThemeProps {
@@ -179,88 +181,90 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
           </div>
         </EntranceItem>
 
-        {/* Hero Architectural Layout (Vertically Centered in Hero Viewport) */}
+        {/* Hero Architectural Layout (Independently Centered at 50% of Hero Viewport) */}
         <AnimatePresence>
           {!isMenuMode && (
             <motion.div
-              key="minimal-hero-body"
+              key="minimal-hero-center-content"
               initial={{ opacity: 1, y: 0 }}
               exit={{
                 opacity: 0,
-                y: -60,
-                transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                y: -40,
+                transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
               }}
-              transition={{ duration: 0.5 }}
-              className="relative z-10 px-5 py-4 max-w-xl mx-auto w-full flex-1 flex flex-col items-center justify-center text-center my-auto"
+              transition={{ duration: 0.45 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-5 z-10 flex flex-col items-center text-center space-y-3.5 pointer-events-auto"
             >
-              {/* Main Centered Content */}
-              <div className="flex flex-col items-center space-y-3.5 w-full">
-                <EntranceItem index={1} className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium shadow-sm">
-                  منوی اختصاصی رستوران و کافه
-                </EntranceItem>
+              <EntranceItem index={1} className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium shadow-sm">
+                منوی اختصاصی رستوران و کافه
+              </EntranceItem>
 
-                <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
-                  {config.hero.headline}
-                </EntranceItem>
+              <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
+                {config.hero.headline}
+              </EntranceItem>
 
-                <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light max-w-xs sm:max-w-sm">
-                  {config.hero.subheadline}
-                </EntranceItem>
+              <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light max-w-xs sm:max-w-sm">
+                {config.hero.subheadline}
+              </EntranceItem>
 
-                {/* Information Pills (Identical dimensions & weight) */}
-                <EntranceItem index={4} className="w-full max-w-sm mx-auto pt-1">
-                  <div className="grid grid-cols-2 gap-2.5 w-full">
-                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-neutral-900/90 backdrop-blur-md rounded-full border border-neutral-800 text-neutral-200 text-xs font-medium overflow-hidden shadow-sm">
-                      <Clock className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
-                        {toPersianDigits(restaurant.workingHours)}
-                      </span>
-                    </div>
-                    <div className="h-9 px-3 flex items-center justify-center gap-1.5 bg-neutral-900/90 backdrop-blur-md rounded-full border border-neutral-800 text-neutral-200 text-xs font-medium overflow-hidden shadow-sm">
-                      <MapPin className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                      <span className="truncate max-w-[120px] sm:max-w-[140px] text-[11px] sm:text-xs">
-                        {restaurant.neighborhood}
-                      </span>
-                    </div>
-                  </div>
-                </EntranceItem>
-              </div>
-
-              {/* Lower CTA Button Container */}
-              <div className="w-full flex flex-col items-center mt-7 sm:mt-9">
-                <EntranceItem index={5} className="w-full max-w-xs">
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => enterMenu('cta')}
-                    id="minimal-enter-menu-btn"
-                    className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-teal-950/40 whitespace-nowrap"
-                  >
-                    <span className="whitespace-nowrap">{config.hero.ctaText}</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </motion.button>
-                </EntranceItem>
-
-                <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light text-center mt-2.5">
-                  جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-                </EntranceItem>
-              </div>
+              {/* Interactive Expandable Information Pills */}
+              <EntranceItem index={4} className="w-full pt-1">
+                <HeroInfoPills
+                  workingHours={restaurant.workingHours}
+                  location={restaurant.neighborhood}
+                  themeId="minimal"
+                />
+              </EntranceItem>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Collapsed Short Hero Status Bar */}
+        {/* Lower CTA Button Container (Independently Anchored Near Bottom Portion) */}
+        <AnimatePresence>
+          {!isMenuMode && (
+            <motion.div
+              key="minimal-hero-bottom-cta"
+              initial={{ opacity: 1, y: 0 }}
+              exit={{
+                opacity: 0,
+                y: 30,
+                transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+              }}
+              transition={{ duration: 0.45 }}
+              className="absolute bottom-6 sm:bottom-9 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-10 flex flex-col items-center pointer-events-auto"
+            >
+              <EntranceItem index={5} className="w-full">
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => enterMenu('cta')}
+                  id="minimal-enter-menu-btn"
+                  className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-teal-950/40 whitespace-nowrap"
+                >
+                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </motion.button>
+              </EntranceItem>
+
+              <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light text-center mt-2.5 whitespace-nowrap">
+                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
+              </EntranceItem>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Collapsed Short Hero Status Bar (Balanced Grid, Single Line Guaranteed) */}
         {isMenuMode && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            className="relative z-10 w-full px-4 sm:px-6 pb-3 max-w-xl mx-auto flex items-center justify-between text-xs text-neutral-300 border-t border-white/10 pt-2"
+            className="relative z-10 w-full px-4 sm:px-6 pb-3 max-w-xl mx-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center text-xs text-neutral-300 border-t border-white/10 pt-2"
           >
-            <div className="flex items-center gap-2 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
+            <div className="flex items-center gap-2 font-medium min-w-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="truncate whitespace-nowrap">پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
             </div>
-            <div className="text-teal-300 font-medium">
+            <div className="text-teal-300 font-medium shrink-0 whitespace-nowrap">
               {toPersianDigits(restaurant.items.length)} آیتم
             </div>
           </motion.div>
@@ -342,8 +346,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               dataCategoryId={category.id}
               className="space-y-3 scroll-mt-20"
             >
-              {/* Architectural Category Header */}
-              <EntranceItem index={0} className="flex items-baseline justify-between border-b border-neutral-800/80 pb-2">
+              {/* Architectural Category Header: Static, never hidden */}
+              <div className="flex items-baseline justify-between border-b border-neutral-800/80 pb-2">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
                   <h3 className="font-bold text-base text-white tracking-tight">
@@ -353,12 +357,12 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 <span className="text-[11px] text-teal-400/80 font-medium">
                   {toPersianDigits(items.length)} عنوان
                 </span>
-              </EntranceItem>
+              </div>
 
               {/* Borderless Typographic Rows */}
               <div className="divide-y divide-neutral-900/80">
                 {items.map((item, idx) => (
-                  <EntranceItem key={item.id} index={idx + 1}>
+                  <EntranceItem key={item.id} index={idx}>
                     <MinimalItemRow
                       item={item}
                       onSelect={setSelectedItem}
@@ -467,15 +471,15 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
         )}
       </div>
 
-      {/* Clean Architectural Thumbnail */}
+      {/* Clean Architectural Thumbnail with SafeImage */}
       <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-neutral-950 shrink-0 border border-neutral-800">
-        <img
+        <SafeImage
           src={item.image}
           alt={item.name}
           className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
             isSoldOut ? 'grayscale contrast-75' : ''
           }`}
-          loading="lazy"
+          fallbackIconClassName="w-5 h-5 text-neutral-600"
         />
 
         {isSoldOut && (

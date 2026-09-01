@@ -29,21 +29,26 @@ export const useHeroTransition = ({
   }, [initialState, viewState]);
 
   const enterMenu = useCallback(
-    (source: 'cta' | 'wheel' | 'touch' | 'keyboard' | 'toolbar' = 'cta') => {
+    async (source: 'cta' | 'wheel' | 'touch' | 'keyboard' | 'toolbar' = 'cta') => {
       if (isTransitioningRef.current || viewState === 'menu' || isOverlayOpen) return;
 
       isTransitioningRef.current = true;
       setIsTransitioning(true);
+
+      // Lock scroll anchor strictly at top
+      await scrollToTop(false);
+
       setViewState('menu');
       onStateChange?.('menu');
 
-      // Keep guard active throughout the transition duration to avoid multi-triggers
-      setTimeout(() => {
+      // Keep guard active throughout the transition duration to consume any momentum
+      setTimeout(async () => {
+        await scrollToTop(false);
         isTransitioningRef.current = false;
         setIsTransitioning(false);
       }, transitionDurationMs + 100);
     },
-    [viewState, isOverlayOpen, onStateChange, transitionDurationMs]
+    [viewState, isOverlayOpen, scrollToTop, onStateChange, transitionDurationMs]
   );
 
   const returnToHero = useCallback(async () => {
@@ -52,25 +57,21 @@ export const useHeroTransition = ({
     isTransitioningRef.current = true;
     setIsTransitioning(true);
 
-    // If currently scrolled, scroll to top first
-    const currentScroll = getScrollTop();
-    if (currentScroll > 5) {
-      await scrollToTop(true);
-    }
+    // Scroll to top immediately to ensure seamless reverse animation
+    await scrollToTop(false);
 
     setViewState('hero');
     onStateChange?.('hero');
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      await scrollToTop(false);
       isTransitioningRef.current = false;
       setIsTransitioning(false);
     }, transitionDurationMs + 100);
-  }, [viewState, isOverlayOpen, getScrollTop, scrollToTop, onStateChange, transitionDurationMs]);
+  }, [viewState, isOverlayOpen, scrollToTop, onStateChange, transitionDurationMs]);
 
-  // Scroll listener when in Menu mode: scrolling up at the top returns to Hero mode
+  // Global scroll listener for Menu Mode & Transition momentum consumption
   useEffect(() => {
-    if (viewState !== 'menu') return;
-
     const container = getScrollContainer();
     const targetElement = container === window ? document : (container as HTMLElement);
 
@@ -78,38 +79,85 @@ export const useHeroTransition = ({
 
     let touchMenuStartY: number | null = null;
 
-    // Wheel listener when at top of page
-    const handleMenuWheel = (e: Event) => {
+    // Wheel listener: handles both Hero transition momentum locking & Menu mode upward return
+    const handleWheel = (e: Event) => {
       const wheelEvent = e as WheelEvent;
-      if (isTransitioningRef.current || isOverlayOpen) return;
 
-      const currentScroll = getScrollTop();
-      // If user is at or very near the top and scrolling upwards
-      if (currentScroll <= 1 && wheelEvent.deltaY < -15) {
+      // 1. While transitioning: CONSUME ALL SCROLL MOMENTUM to prevent trackpad inertia from moving the page
+      if (isTransitioningRef.current) {
         if (wheelEvent.cancelable) {
           wheelEvent.preventDefault();
         }
-        returnToHero();
+        return;
+      }
+
+      if (isOverlayOpen) return;
+
+      // 2. In Hero mode: downward scroll intent triggers enterMenu
+      if (viewState === 'hero') {
+        if (wheelEvent.deltaY > 2) {
+          if (wheelEvent.cancelable) {
+            wheelEvent.preventDefault();
+          }
+          enterMenu('wheel');
+        }
+        return;
+      }
+
+      // 3. In Menu mode: small upward scroll intent at top (deltaY <= -2) triggers returnToHero
+      if (viewState === 'menu') {
+        const currentScroll = getScrollTop();
+        if (currentScroll <= 1 && wheelEvent.deltaY <= -2) {
+          if (wheelEvent.cancelable) {
+            wheelEvent.preventDefault();
+          }
+          returnToHero();
+        }
       }
     };
 
-    // Touch listener when at top of page (pull down to reveal hero)
-    const handleMenuTouchStart = (e: Event) => {
+    // Touch listeners: handles Hero transition touch locking, Hero enter, and Menu reverse
+    const handleTouchStart = (e: Event) => {
       const touchEvent = e as TouchEvent;
       if (touchEvent.touches && touchEvent.touches.length > 0) {
+        touchStartYRef.current = touchEvent.touches[0].clientY;
         touchMenuStartY = touchEvent.touches[0].clientY;
       }
     };
 
-    const handleMenuTouchMove = (e: Event) => {
+    const handleTouchMove = (e: Event) => {
       const touchEvent = e as TouchEvent;
-      if (isTransitioningRef.current || isOverlayOpen || touchMenuStartY === null) return;
 
-      const currentScroll = getScrollTop();
-      if (currentScroll <= 1 && touchEvent.touches && touchEvent.touches.length > 0) {
-        const currentY = touchEvent.touches[0].clientY;
+      // While transitioning: prevent touch scrolling
+      if (isTransitioningRef.current) {
+        if (touchEvent.cancelable) {
+          touchEvent.preventDefault();
+        }
+        return;
+      }
+
+      if (isOverlayOpen || !touchEvent.touches || touchEvent.touches.length === 0) return;
+
+      const currentY = touchEvent.touches[0].clientY;
+
+      // Hero mode: swipe up (delta >= 4px) enters menu
+      if (viewState === 'hero' && touchStartYRef.current !== null) {
+        const deltaY = touchStartYRef.current - currentY;
+        if (deltaY >= 4) {
+          if (touchEvent.cancelable) {
+            touchEvent.preventDefault();
+          }
+          touchStartYRef.current = null;
+          enterMenu('touch');
+        }
+        return;
+      }
+
+      // Menu mode: pull down at top of page (delta >= 5px) returns to hero
+      if (viewState === 'menu' && touchMenuStartY !== null) {
+        const currentScroll = getScrollTop();
         const deltaY = currentY - touchMenuStartY; // Positive when pulling down
-        if (deltaY > 40) {
+        if (currentScroll <= 1 && deltaY >= 5) {
           if (touchEvent.cancelable) {
             touchEvent.preventDefault();
           }
@@ -119,89 +167,30 @@ export const useHeroTransition = ({
       }
     };
 
-    const handleMenuTouchEnd = () => {
+    const handleTouchEnd = () => {
+      touchStartYRef.current = null;
       touchMenuStartY = null;
     };
 
-    targetElement.addEventListener('wheel', handleMenuWheel, { passive: false });
-    targetElement.addEventListener('touchstart', handleMenuTouchStart, { passive: true });
-    targetElement.addEventListener('touchmove', handleMenuTouchMove, { passive: false });
-    targetElement.addEventListener('touchend', handleMenuTouchEnd, { passive: true });
-
-    return () => {
-      targetElement.removeEventListener('wheel', handleMenuWheel);
-      targetElement.removeEventListener('touchstart', handleMenuTouchStart);
-      targetElement.removeEventListener('touchmove', handleMenuTouchMove);
-      targetElement.removeEventListener('touchend', handleMenuTouchEnd);
-    };
-  }, [viewState, isOverlayOpen, getScrollContainer, getScrollTop, returnToHero]);
-
-  // Scroll intent listener for Wheel, Touch, and Key events while in Hero view
-  useEffect(() => {
-    if (viewState !== 'hero') return;
-
-    const container = getScrollContainer();
-    const targetElement = container === window ? document : (container as HTMLElement);
-
-    if (!targetElement) return;
-
-    // 1. Wheel / Trackpad listener
-    const handleWheel = (e: Event) => {
-      const wheelEvent = e as WheelEvent;
-      if (isTransitioningRef.current || isOverlayOpen) return;
-
-      if (wheelEvent.deltaY > 2) {
-        if (wheelEvent.cancelable) {
-          wheelEvent.preventDefault();
-        }
-        enterMenu('wheel');
-      }
-    };
-
-    // 2. Touch listener (for mobile & touch devices)
-    const handleTouchStart = (e: Event) => {
-      const touchEvent = e as TouchEvent;
-      if (touchEvent.touches && touchEvent.touches.length > 0) {
-        touchStartYRef.current = touchEvent.touches[0].clientY;
-      }
-    };
-
-    const handleTouchMove = (e: Event) => {
-      const touchEvent = e as TouchEvent;
-      if (isTransitioningRef.current || isOverlayOpen || touchStartYRef.current === null) return;
-
-      if (touchEvent.touches && touchEvent.touches.length > 0) {
-        const currentY = touchEvent.touches[0].clientY;
-        const deltaY = touchStartYRef.current - currentY; // Positive when swiping up (intending to scroll down)
-
-        if (deltaY >= 3) {
-          if (touchEvent.cancelable) {
-            touchEvent.preventDefault();
-          }
-          touchStartYRef.current = null;
-          enterMenu('touch');
-        }
-      }
-    };
-
-    const handleTouchEnd = () => {
-      touchStartYRef.current = null;
-    };
-
-    // 3. Keyboard navigation listener (ArrowDown, PageDown, Space)
+    // Keyboard navigation listener (ArrowDown, PageDown, Space)
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isTransitioningRef.current || isOverlayOpen) return;
+      if (isTransitioningRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      if (isOverlayOpen) return;
 
       const activeTag = document.activeElement?.tagName?.toLowerCase();
       if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') return;
 
-      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      if (viewState === 'hero' && (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ')) {
         e.preventDefault();
         enterMenu('keyboard');
       }
     };
 
-    // Add non-passive event listeners to enable preventDefault
+    // Attach listeners with non-passive options to allow preventDefault
     targetElement.addEventListener('wheel', handleWheel, { passive: false });
     targetElement.addEventListener('touchstart', handleTouchStart, { passive: true });
     targetElement.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -215,7 +204,7 @@ export const useHeroTransition = ({
       targetElement.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [viewState, isOverlayOpen, getScrollContainer, enterMenu]);
+  }, [viewState, isOverlayOpen, getScrollContainer, getScrollTop, enterMenu, returnToHero]);
 
   return {
     viewState,

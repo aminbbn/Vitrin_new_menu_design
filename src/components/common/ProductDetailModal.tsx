@@ -16,6 +16,7 @@ import { formatToman, toPersianDigits } from '../../utils/formatters';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../context/MenuViewportContext';
 import { OverlayPortal } from './OverlayPortal';
+import { SafeImage } from './SafeImage';
 
 interface ProductDetailModalProps {
   item: MenuItem | null;
@@ -134,10 +135,11 @@ const ProductDetailOverlayContent: React.FC<ProductDetailOverlayContentProps> = 
             isDesktop ? 'h-48' : 'h-40 sm:h-44'
           }`}
         >
-          <img
+          <SafeImage
             src={item.image}
             alt={item.name}
             className="w-full h-full object-cover"
+            fallbackIconClassName="w-8 h-8 text-neutral-500"
           />
 
           {/* Atmospheric Gradient Scrim */}
