@@ -96,7 +96,7 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
               opacity: 1,
               scale: 1,
               y: 0,
-              bottom: bottomPosition,
+              bottom: isSelectionActive ? 84 : 18,
             }}
             exit={{ opacity: 0, scale: 0.8, y: 12 }}
             transition={{
@@ -109,7 +109,7 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
             id="scroll-to-top-btn"
             className={`${
               isSimulated ? 'absolute' : 'fixed'
-            } left-4 z-40 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-colors cursor-pointer border backdrop-blur-md pointer-events-auto ${
+            } left-4 sm:left-6 z-40 w-10 h-10 rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-colors cursor-pointer border backdrop-blur-md pointer-events-auto ${
               themeId === 'modern'
                 ? 'bg-slate-900/95 hover:bg-slate-800 border-slate-700 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
                 : themeId === 'minimal'

@@ -25,6 +25,7 @@ import { ScrollToTopButton } from '../../common/ScrollToTopButton';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import { useHeroTransition } from '../../../hooks/useHeroTransition';
+import { EntranceSection, EntranceItem } from '../../../motion';
 
 interface ImmersiveThemeProps {
   restaurant: RestaurantData;
@@ -149,10 +150,10 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         </div>
 
         {/* Top Hero Brand Header (Anchored identity in both full and short hero) */}
-        <div className="relative z-10 w-full px-4 sm:px-6 pt-4 sm:pt-5 max-w-2xl mx-auto flex items-center justify-between">
+        <EntranceItem index={0} className="relative z-10 w-full px-4 sm:px-6 pt-4 sm:pt-5 max-w-2xl mx-auto flex items-center justify-between">
           {/* Restaurant Identity */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden p-0.5 border border-amber-500/40 bg-black/60 backdrop-blur-md shadow-xl flex-shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden p-0.5 border border-amber-500/40 bg-black/60 backdrop-blur-md shadow-xl flex-shrink-0">
               <img
                 src={restaurant.logo}
                 alt={restaurant.name}
@@ -164,15 +165,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               <h1 className="font-bold text-amber-300 tracking-tight text-base sm:text-lg">
                 {restaurant.name}
               </h1>
-              <p className="text-[11px] sm:text-xs text-neutral-300 font-light flex items-center gap-1.5">
-                <span>{restaurant.cuisine}</span>
-                <span>•</span>
-                <span>{restaurant.neighborhood}</span>
+              <p className="text-[11px] sm:text-xs text-neutral-300 font-light">
+                {restaurant.cuisine}
               </p>
             </div>
           </div>
 
-          {/* Top Actions */}
+          {/* Top Actions: Reset button (when in menu) and Info icon button */}
           <div className="flex items-center gap-2">
             {isMenuMode && (
               <motion.button
@@ -180,7 +179,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={returnToHero}
                 id="hero-reset-intro-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 hover:bg-neutral-800 text-amber-300 text-xs font-semibold border border-amber-500/30 backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-lg"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 hover:bg-neutral-800 text-amber-300 text-xs font-semibold border border-amber-500/30 backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-lg whitespace-nowrap"
                 title="مشاهده صفحه معرفی"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -191,13 +190,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
             <button
               onClick={() => setIsInfoOpen(true)}
               id="hero-info-btn"
-              className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-neutral-200 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-lg"
+              className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-neutral-200 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-lg shrink-0"
               aria-label="اطلاعات رستوران"
             >
               <Info className="w-4 h-4 text-amber-300" />
             </button>
           </div>
-        </div>
+        </EntranceItem>
 
         {/* Center Intro Editorial Content (Exits smoothly upward when entering menu) */}
         <AnimatePresence>
@@ -211,30 +210,30 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                 transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
               }}
               transition={{ duration: 0.5 }}
-              className="relative z-10 w-full px-6 py-6 max-w-xl mx-auto flex flex-col items-center text-center space-y-6 my-auto"
+              className="relative z-10 w-full px-5 py-4 max-w-lg mx-auto flex flex-col items-center text-center space-y-4 mt-auto mb-6 sm:mb-10"
             >
               {/* Gold Ornament Divider */}
-              <div className="flex items-center gap-2 text-amber-400 text-xs tracking-widest">
+              <EntranceItem index={1} className="flex items-center gap-2 text-amber-400 text-xs tracking-widest">
                 <span className="w-6 h-[1px] bg-amber-400/40" />
                 <span className="inline-flex items-center gap-1.5 font-semibold">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                   منوی دیجیتال
                 </span>
                 <span className="w-6 h-[1px] bg-amber-400/40" />
-              </div>
+              </EntranceItem>
 
-              {/* Main Headline */}
-              <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight max-w-md">
+              {/* Main Headline with intentional line layout */}
+              <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
                 {config.hero.headline}
-              </h2>
+              </EntranceItem>
 
               {/* Sub-headline */}
-              <p className="text-xs sm:text-sm text-neutral-300 max-w-sm leading-relaxed font-light">
+              <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-300 max-w-xs sm:max-w-sm leading-relaxed font-light">
                 {config.hero.subheadline}
-              </p>
+              </EntranceItem>
 
               {/* Operational Badges */}
-              <div className="flex items-center gap-3 pt-1 text-xs text-neutral-300">
+              <EntranceItem index={4} className="flex items-center gap-3 pt-0.5 text-xs text-neutral-300">
                 <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 font-medium">
                   <Clock className="w-3.5 h-3.5 text-amber-400" />
                   <span>{toPersianDigits(restaurant.workingHours)}</span>
@@ -243,25 +242,25 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                   <MapPin className="w-3.5 h-3.5 text-amber-400" />
                   <span>{restaurant.neighborhood}</span>
                 </div>
-              </div>
+              </EntranceItem>
 
-              {/* Primary Call to Action Button with Tactile Feedback */}
-              <div className="w-full max-w-xs pt-3">
+              {/* Primary Call to Action Button with generous breathing room */}
+              <EntranceItem index={5} className="w-full max-w-xs pt-4 sm:pt-6">
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => enterMenu('cta')}
                   id="enter-menu-hero-btn"
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-black text-base shadow-[0_12px_32px_rgba(212,175,55,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 group cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-bold text-sm sm:text-base shadow-[0_12px_32px_rgba(212,175,55,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
                 >
-                  <span>{config.hero.ctaText}</span>
-                  <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                  <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
                 </motion.button>
-              </div>
+              </EntranceItem>
 
               {/* Hint */}
-              <div className="text-neutral-400 text-xs font-light">
+              <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light">
                 جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </div>
+              </EntranceItem>
             </motion.div>
           )}
         </AnimatePresence>
@@ -353,33 +352,34 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       <main className="max-w-2xl mx-auto w-full px-4 pt-6 space-y-10 pb-28">
         {/* If search query is active */}
         {searchQuery ? (
-          <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-neutral-400">
+          <EntranceSection className="space-y-4">
+            <EntranceItem index={0} as="h2" className="text-sm font-semibold text-neutral-400">
               نتایج جستجو برای «{searchQuery}» ({toPersianDigits(filteredItems.length)} مورد)
-            </h2>
+            </EntranceItem>
             {filteredItems.length === 0 ? (
-              <div className="text-center py-12 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6">
+              <EntranceItem index={1} className="text-center py-12 bg-neutral-900/50 rounded-2xl border border-neutral-800 p-6">
                 <p className="text-sm text-neutral-400">موردی با این مشخصات در منو یافت نشد.</p>
-              </div>
+              </EntranceItem>
             ) : (
               <div className="grid grid-cols-1 gap-3.5">
-                {filteredItems.map((item) => (
-                  <EditorialItemCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    accentColor={config.accentColor}
-                  />
+                {filteredItems.map((item, idx) => (
+                  <EntranceItem key={item.id} index={idx + 1}>
+                    <EditorialItemCard
+                      item={item}
+                      onSelect={setSelectedItem}
+                      accentColor={config.accentColor}
+                    />
+                  </EntranceItem>
                 ))}
               </div>
             )}
-          </div>
+          </EntranceSection>
         ) : (
           <>
             {/* Featured / Signature Section */}
             {featuredItems.length > 0 && (
-              <section className="space-y-3.5">
-                <div className="flex items-center justify-between">
+              <EntranceSection className="space-y-3.5">
+                <EntranceItem index={0} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span
                       style={{ backgroundColor: config.accentColor }}
@@ -390,20 +390,21 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                     </h2>
                   </div>
                   <span className="text-xs text-amber-400 font-medium">امضای بونو</span>
-                </div>
+                </EntranceItem>
 
                 {/* Featured Items Grid: 1 per row on mobile, 2 on wide viewports */}
                 <div className={`grid gap-4 ${isWideLayout ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  {featuredItems.slice(0, 2).map((item) => (
-                    <FeaturedEditorialCard
-                      key={item.id}
-                      item={item}
-                      onSelect={setSelectedItem}
-                      accentColor={config.accentColor}
-                    />
+                  {featuredItems.slice(0, 2).map((item, idx) => (
+                    <EntranceItem key={item.id} index={idx + 1}>
+                      <FeaturedEditorialCard
+                        item={item}
+                        onSelect={setSelectedItem}
+                        accentColor={config.accentColor}
+                      />
+                    </EntranceItem>
                   ))}
                 </div>
-              </section>
+              </EntranceSection>
             )}
 
             {/* Standard Category Sections */}
@@ -414,14 +415,14 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               if (categoryItems.length === 0) return null;
 
               return (
-                <section
+                <EntranceSection
                   key={category.id}
                   id={`cat-section-${category.id}`}
-                  data-category-id={category.id}
+                  dataCategoryId={category.id}
                   className="space-y-4 pt-4 scroll-mt-20"
                 >
                   {/* Section Header */}
-                  <div className="border-b border-neutral-800/80 pb-2.5 flex items-end justify-between">
+                  <EntranceItem index={0} className="border-b border-neutral-800/80 pb-2.5 flex items-end justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
                         <span>{category.name}</span>
@@ -435,36 +436,37 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                         </p>
                       )}
                     </div>
-                  </div>
+                  </EntranceItem>
 
                   {/* List of items */}
                   <div className="grid grid-cols-1 gap-3.5">
-                    {categoryItems.map((item) => (
-                      <EditorialItemCard
-                        key={item.id}
-                        item={item}
-                        onSelect={setSelectedItem}
-                        accentColor={config.accentColor}
-                      />
+                    {categoryItems.map((item, idx) => (
+                      <EntranceItem key={item.id} index={idx + 1}>
+                        <EditorialItemCard
+                          item={item}
+                          onSelect={setSelectedItem}
+                          accentColor={config.accentColor}
+                        />
+                      </EntranceItem>
                     ))}
                   </div>
-                </section>
+                </EntranceSection>
               );
             })}
           </>
         )}
 
         {/* Brand Footer */}
-        <footer className="pt-10 pb-16 text-center space-y-3 border-t border-neutral-800/60 mt-12">
-          <div className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-amber-500/20 bg-black/40">
+        <EntranceSection as="footer" className="pt-10 pb-16 text-center space-y-3 border-t border-neutral-800/60 mt-12">
+          <EntranceItem index={0} className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-amber-500/20 bg-black/40">
             <img src={restaurant.logo} alt={restaurant.name} className="w-full h-full object-cover rounded-lg" />
-          </div>
-          <h4 className="text-sm font-bold text-white">{restaurant.name}</h4>
-          <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">{restaurant.tagline}</p>
-          <div className="text-[11px] text-neutral-400 pt-3">
+          </EntranceItem>
+          <EntranceItem index={1} as="h4" className="text-sm font-bold text-white">{restaurant.name}</EntranceItem>
+          <EntranceItem index={2} as="p" className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">{restaurant.tagline}</EntranceItem>
+          <EntranceItem index={3} className="text-[11px] text-neutral-400 pt-3">
             منوی دیجیتال طراحی شده با ویترین
-          </div>
-        </footer>
+          </EntranceItem>
+        </EntranceSection>
       </main>
 
       {/* Floating Bottom-Docked Scroll To Top Button (Accounting for Selection Bar) */}
@@ -525,15 +527,15 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
       whileTap={{ scale: 0.99 }}
       onClick={() => onSelect(item)}
       id={`item-featured-${item.id}`}
-      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-row items-stretch h-[142px] group ${
+      className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-row items-stretch h-[132px] group ${
         quantity > 0
           ? 'border-amber-500/50 shadow-[0_8px_30px_rgba(212,175,55,0.14)] ring-1 ring-amber-500/20'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side (Right in RTL) */}
-      <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full">
-        {/* Row 1: Title */}
+      <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full text-right">
+        {/* Row 1: Title (Primary element) */}
         <div className="min-w-0">
           <h4 className="font-semibold text-sm sm:text-base text-neutral-100 group-hover:text-amber-300 transition-colors tracking-tight truncate">
             {item.name}
@@ -547,9 +549,9 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
           </p>
         </div>
 
-        {/* Row 3: Anchored Price & Discovery Indication Row */}
-        <div className="mt-auto pt-2 border-t border-neutral-800/50 flex items-center justify-between">
-          <span className="text-sm sm:text-base font-semibold text-amber-300 tracking-tight whitespace-nowrap">
+        {/* Row 3: Refined Price & Status */}
+        <div className="mt-auto pt-1.5 border-t border-neutral-800/50 flex items-center justify-between">
+          <span className="text-xs sm:text-sm font-normal text-amber-300/90 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -561,15 +563,15 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
               {toPersianDigits(quantity)} انتخاب شده
             </span>
           ) : (
-            <span className="text-[11px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light">
+            <span className="text-[11px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light whitespace-nowrap">
               مشاهده جزئیات
             </span>
           )}
         </div>
       </div>
 
-      {/* Dominant Food Photography Side (Left in RTL, ~38% width) */}
-      <div className="w-[38%] shrink-0 relative overflow-hidden bg-neutral-950">
+      {/* Food Photography Side (Left in RTL, ~36% width) */}
+      <div className="w-[36%] shrink-0 relative overflow-hidden bg-neutral-950">
         <img
           src={item.image}
           alt={item.name}
@@ -580,21 +582,10 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#0d141f]/70 via-transparent to-transparent" />
 
-        {/* Floating Special Badge on Image Top Corner */}
-        {item.badge && (
-          <span
-            style={{ backgroundColor: accentColor, color: '#000' }}
-            className="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 whitespace-nowrap z-10"
-          >
-            <Sparkles className="w-2.5 h-2.5" />
-            <span className="truncate">{item.badge}</span>
-          </span>
-        )}
-
         {/* Sold Out Overlay */}
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-neutral-900/90 text-neutral-300 text-[10px] font-medium px-2 py-0.5 rounded-full border border-neutral-700 shadow-xl">
+            <span className="bg-neutral-900/90 text-neutral-300 text-[10px] font-medium px-2 py-0.5 rounded-full border border-neutral-700 shadow-xl whitespace-nowrap">
               ناموجود
             </span>
           </div>
@@ -618,17 +609,17 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
       whileHover={{ y: -1 }}
       onClick={() => onSelect(item)}
       id={`item-card-${item.id}`}
-      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex gap-3.5 items-center justify-between group shadow-md h-[106px] ${
+      className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex gap-3.5 items-center justify-between group shadow-md h-[100px] ${
         quantity > 0
           ? 'border-amber-500/45 shadow-[0_4px_20px_rgba(212,175,55,0.12)] ring-1 ring-amber-500/20'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side */}
-      <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5">
-        {/* Row 1: Title */}
+      <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5 text-right">
+        {/* Row 1: Title (Primary anchor) */}
         <div className="min-w-0">
-          <h4 className="font-medium text-sm text-neutral-100 group-hover:text-amber-300 transition-colors truncate">
+          <h4 className="font-semibold text-sm text-neutral-100 group-hover:text-amber-300 transition-colors truncate">
             {item.name}
           </h4>
         </div>
@@ -640,9 +631,9 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
           </p>
         </div>
 
-        {/* Row 3: Price and Subtle Indication */}
+        {/* Row 3: Price and Indication */}
         <div className="flex items-center justify-between pt-1 border-t border-neutral-800/40">
-          <span className="text-sm font-semibold text-amber-300 tracking-tight whitespace-nowrap">
+          <span className="text-xs sm:text-sm font-normal text-amber-300/90 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -654,14 +645,14 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
               {toPersianDigits(quantity)} انتخاب شده
             </span>
           ) : (
-            <span className="text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light">
+            <span className="text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light whitespace-nowrap">
               جزئیات
             </span>
           )}
         </div>
       </div>
 
-      {/* Image Thumbnail with stable dimensions & floating badge */}
+      {/* Image Thumbnail */}
       <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-neutral-950 border border-neutral-800">
         <img
           src={item.image}
@@ -672,19 +663,12 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
           loading="lazy"
         />
 
-        {/* Floating Special Badge on Image */}
-        {item.badge && (
-          <span
-            style={{ backgroundColor: accentColor, color: '#000' }}
-            className="absolute top-1 right-1 text-[8px] font-bold px-1.5 py-0.2 rounded-md shadow flex items-center gap-0.5 whitespace-nowrap z-10"
-          >
-            <span>{item.badge}</span>
-          </span>
-        )}
-
+        {/* Sold Out Overlay */}
         {isSoldOut && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[9px] font-medium text-neutral-300 text-center px-1">ناموجود</span>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="bg-neutral-900/90 text-neutral-300 text-[9px] font-medium px-1.5 py-0.5 rounded-full border border-neutral-700 shadow whitespace-nowrap">
+              ناموجود
+            </span>
           </div>
         )}
       </div>

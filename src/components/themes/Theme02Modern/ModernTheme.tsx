@@ -26,6 +26,8 @@ import { AmbientBackground } from '../../common/AmbientBackground';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import { useHeroTransition } from '../../../hooks/useHeroTransition';
+import { EntranceSection, EntranceItem } from '../../../motion';
+
 
 interface ModernThemeProps {
   restaurant: RestaurantData;
@@ -158,9 +160,9 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
         </div>
 
         {/* Top Header Bar Area */}
-        <div className="relative z-10 w-full px-4 sm:px-6 pt-4 max-w-2xl mx-auto flex items-center justify-between">
+        <EntranceItem index={0} className="relative z-10 w-full px-4 sm:px-6 pt-4 max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl overflow-hidden bg-slate-900 p-0.5 border border-orange-500/40 shadow-xl flex-shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden bg-slate-900 p-0.5 border border-orange-500/40 shadow-xl flex-shrink-0">
               <img
                 src={restaurant.logo}
                 alt={restaurant.name}
@@ -173,7 +175,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 {restaurant.name}
               </h1>
               <p className="text-[11px] sm:text-xs text-orange-400 font-medium">
-                {restaurant.cuisine} • {restaurant.neighborhood}
+                {restaurant.cuisine}
               </p>
             </div>
           </div>
@@ -185,7 +187,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={returnToHero}
                 id="modern-reset-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-900/80 text-orange-400 border border-orange-500/30 text-xs font-semibold hover:bg-slate-800 active:scale-95 cursor-pointer shadow"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-900/80 text-orange-400 border border-orange-500/30 text-xs font-semibold hover:bg-slate-800 active:scale-95 cursor-pointer shadow whitespace-nowrap"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="text-[11px]">معرفی</span>
@@ -195,13 +197,13 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
             <button
               onClick={() => setIsInfoOpen(true)}
               id="modern-header-info-btn"
-              className="w-9 h-9 rounded-full bg-slate-900/80 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition-all cursor-pointer shadow"
+              className="w-9 h-9 rounded-full bg-slate-900/80 border border-slate-700/80 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition-all cursor-pointer shadow shrink-0"
               aria-label="اطلاعات رستوران"
             >
               <Info className="w-4 h-4 text-orange-400" />
             </button>
           </div>
-        </div>
+        </EntranceItem>
 
         {/* Hero Intro Body Content */}
         <AnimatePresence>
@@ -215,23 +217,23 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
               }}
               transition={{ duration: 0.5 }}
-              className="relative z-10 px-6 py-6 max-w-lg mx-auto w-full flex flex-col justify-between space-y-6 my-auto"
+              className="relative z-10 px-5 py-4 max-w-lg mx-auto w-full flex flex-col justify-between space-y-4 mt-auto mb-6 sm:mb-10 text-center sm:text-right"
             >
-              <div className="space-y-4 text-center sm:text-right">
-                <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-white">
+              <div className="space-y-3.5">
+                <EntranceItem index={1} className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-white">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span>پذیرایی حضوری و منوی زنده فعال</span>
-                </div>
+                </EntranceItem>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
+                <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
                   {config.hero.headline}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
+                </EntranceItem>
+                <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-slate-300 leading-relaxed font-light max-w-xs sm:max-w-sm">
                   {config.hero.subheadline}
-                </p>
+                </EntranceItem>
 
                 {/* Categories Teaser Chips */}
-                <div className="pt-2">
+                <EntranceItem index={4} className="pt-1">
                   <div className="text-[11px] text-slate-400 font-semibold mb-2">دسته‌بندی‌های موجود در منو:</div>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                     {restaurant.categories.slice(0, 4).map((c) => (
@@ -246,25 +248,25 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                       +{toPersianDigits(restaurant.categories.length - 4)} بخش دیگر
                     </span>
                   </div>
-                </div>
+                </EntranceItem>
               </div>
 
-              {/* Main Entry Button with Tactile Feedback */}
-              <div className="pt-2">
+              {/* Main Entry Button with generous breathing room */}
+              <EntranceItem index={5} className="pt-4 sm:pt-6">
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => enterMenu('cta')}
                   id="modern-enter-menu-btn"
-                  className="w-full py-4 px-6 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white font-extrabold text-base shadow-[0_10px_25px_rgba(249,115,22,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(249,115,22,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
                 >
-                  <span>{config.hero.ctaText}</span>
-                  <ChevronDown className="w-5 h-5" />
+                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                  <ChevronDown className="w-4 h-4" />
                 </motion.button>
-              </div>
+              </EntranceItem>
 
-              <div className="text-slate-400 text-xs font-light text-center">
+              <EntranceItem index={6} className="text-slate-400 text-[11px] font-light text-center">
                 جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </div>
+              </EntranceItem>
             </motion.div>
           )}
         </AnimatePresence>
@@ -360,14 +362,14 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
           const standardItems = featuredItem ? items.filter((i) => i.id !== featuredItem.id) : items;
 
           return (
-            <section
+            <EntranceSection
               key={category.id}
               id={`modern-cat-${category.id}`}
-              data-category-id={category.id}
+              dataCategoryId={category.id}
               className="space-y-4 scroll-mt-20"
             >
               {/* Category Functional Header */}
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <EntranceItem index={0} className="flex items-center justify-between pb-2 border-b border-slate-800/80">
                 <div className="flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
                   <h3 className="font-black text-base sm:text-lg text-white">
@@ -377,11 +379,11 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 <span className="text-xs text-orange-400/90 font-bold bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-full">
                   {toPersianDigits(items.length)} خوراک
                 </span>
-              </div>
+              </EntranceItem>
 
               {/* Optional Featured Lead Card for Section Rhythm */}
               {featuredItem && !searchQuery && (
-                <div className="mb-3">
+                <EntranceItem index={1} className="mb-3">
                   <ModernFeaturedCard
                     item={featuredItem}
                     isFavorite={favorites.has(featuredItem.id)}
@@ -389,26 +391,28 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                     onSelect={setSelectedItem}
                     accentColor={config.accentColor || '#f97316'}
                   />
-                </div>
+                </EntranceItem>
               )}
 
               {/* High-Density Horizontal Scanning Cards */}
               <div className={`grid gap-3 ${isWideLayout ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                {standardItems.map((item) => {
+                {standardItems.map((item, idx) => {
                   const isFav = favorites.has(item.id);
+                  const itemIndex = (featuredItem && !searchQuery) ? idx + 2 : idx + 1;
                   return (
-                    <ModernItemCard
-                      key={item.id}
-                      item={item}
-                      isFavorite={isFav}
-                      onToggleFavorite={(e) => toggleFavorite(e, item.id)}
-                      onSelect={setSelectedItem}
-                      accentColor={config.accentColor || '#f97316'}
-                    />
+                    <EntranceItem key={item.id} index={itemIndex}>
+                      <ModernItemCard
+                        item={item}
+                        isFavorite={isFav}
+                        onToggleFavorite={(e) => toggleFavorite(e, item.id)}
+                        onSelect={setSelectedItem}
+                        accentColor={config.accentColor || '#f97316'}
+                      />
+                    </EntranceItem>
                   );
                 })}
               </div>
-            </section>
+            </EntranceSection>
           );
         })}
       </main>
@@ -477,15 +481,15 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
     <div
       onClick={() => onSelect(item)}
       id={`modern-featured-${item.id}`}
-      className={`relative bg-[#0e131d]/90 hover:bg-[#121824]/95 border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group shadow-lg flex flex-row items-stretch h-[142px] ${
+      className={`relative bg-[#0e131d]/90 hover:bg-[#121824]/95 border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer group shadow-lg flex flex-row items-stretch h-[132px] ${
         quantity > 0
           ? 'border-orange-500/50 shadow-[0_4px_25px_rgba(249,115,22,0.15)] ring-1 ring-orange-500/20'
           : 'border-slate-800/80 hover:border-slate-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side (Right in RTL) */}
-      <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full">
-        {/* Row 1: Title & Favorite Button */}
+      <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full text-right">
+        {/* Row 1: Title (Primary element) */}
         <div className="flex items-center justify-between gap-1.5 min-w-0">
           <h4 className="font-semibold text-sm sm:text-base text-neutral-100 group-hover:text-orange-400 transition-colors tracking-tight truncate">
             {item.name}
@@ -510,9 +514,9 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
           </p>
         </div>
 
-        {/* Row 3: Anchored Price & Discovery Indication Row */}
-        <div className="mt-auto pt-2 border-t border-slate-800/50 flex items-center justify-between">
-          <span className="text-sm sm:text-base font-semibold text-orange-400 tracking-tight whitespace-nowrap">
+        {/* Row 3: Refined Price & Status */}
+        <div className="mt-auto pt-1.5 border-t border-slate-800/50 flex items-center justify-between">
+          <span className="text-xs sm:text-sm font-normal text-orange-400/90 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -521,15 +525,15 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
               {toPersianDigits(quantity)} انتخاب شده
             </span>
           ) : (
-            <span className="text-[11px] text-slate-500 group-hover:text-slate-300 transition-colors font-light">
+            <span className="text-[11px] text-slate-500 group-hover:text-slate-300 transition-colors font-light whitespace-nowrap">
               مشاهده جزئیات
             </span>
           )}
         </div>
       </div>
 
-      {/* Dominant Food Photography Side (Left in RTL, ~38% width) */}
-      <div className="w-[38%] shrink-0 relative overflow-hidden bg-slate-950">
+      {/* Food Photography Side (Left in RTL, ~36% width) */}
+      <div className="w-[36%] shrink-0 relative overflow-hidden bg-slate-950">
         <img
           src={item.image}
           alt={item.name}
@@ -540,16 +544,9 @@ const ModernFeaturedCard: React.FC<ModernCardProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-l from-[#0e131d]/70 via-transparent to-transparent" />
 
-        {/* Floating Special Badge on Image Top Corner */}
-        {item.badge && (
-          <span className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md whitespace-nowrap z-10">
-            {item.badge}
-          </span>
-        )}
-
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="bg-slate-900/90 text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded-full border border-slate-700">
+            <span className="bg-slate-900/90 text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded-full border border-slate-700 whitespace-nowrap">
               ناموجود
             </span>
           </div>
@@ -577,17 +574,17 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
     <div
       onClick={() => onSelect(item)}
       id={`modern-item-${item.id}`}
-      className={`relative bg-[#0e131d]/80 hover:bg-[#121824]/90 border rounded-2xl p-3 transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group shadow-sm h-[106px] ${
+      className={`relative bg-[#0e131d]/80 hover:bg-[#121824]/90 border rounded-2xl p-3 transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group shadow-sm h-[100px] ${
         quantity > 0
           ? 'border-orange-500/50 shadow-[0_2px_15px_rgba(249,115,22,0.12)] ring-1 ring-orange-500/20'
           : 'border-slate-800/80 hover:border-slate-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
     >
       {/* Content Side */}
-      <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5">
+      <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5 text-right">
         {/* Row 1: Title + Favorite */}
         <div className="flex items-center justify-between gap-1 min-w-0">
-          <h4 className="font-medium text-sm text-neutral-100 group-hover:text-orange-400 transition-colors truncate">
+          <h4 className="font-semibold text-sm text-neutral-100 group-hover:text-orange-400 transition-colors truncate">
             {item.name}
           </h4>
 
@@ -611,9 +608,9 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
           </p>
         </div>
 
-        {/* Row 3: Price & Subtle Indication Row */}
+        {/* Row 3: Refined Price & Status */}
         <div className="flex items-center justify-between pt-1 border-t border-slate-800/40">
-          <span className="text-sm font-semibold text-orange-400 tracking-tight whitespace-nowrap">
+          <span className="text-xs sm:text-sm font-normal text-orange-400/90 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
 
@@ -622,14 +619,14 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
               {toPersianDigits(quantity)} انتخاب شده
             </span>
           ) : (
-            <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors font-light">
+            <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors font-light whitespace-nowrap">
               جزئیات
             </span>
           )}
         </div>
       </div>
 
-      {/* Product Image on Left side (RTL) & floating badge */}
+      {/* Product Image on Left side (RTL) */}
       <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-950 shrink-0 border border-slate-800">
         <img
           src={item.image}
@@ -640,16 +637,9 @@ const ModernItemCard: React.FC<ModernCardProps> = ({
           loading="lazy"
         />
 
-        {/* Floating Special Badge on Image */}
-        {item.badge && (
-          <span className="absolute top-1 right-1 bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.2 rounded-md shadow whitespace-nowrap z-10">
-            {item.badge}
-          </span>
-        )}
-
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[9px] font-medium text-slate-300 text-center px-1">ناموجود</span>
+            <span className="text-[9px] font-medium text-slate-300 text-center px-1 whitespace-nowrap">ناموجود</span>
           </div>
         )}
       </div>

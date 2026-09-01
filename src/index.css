@@ -176,9 +176,48 @@ body, html, #root, button, input, select, textarea {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Universal Entrance-Motion System Standards                                 */
+/* Duration: 300ms, Easing: cubic-bezier(.16, 1, .3, 1), Transform: y(24px)   */
+/* -------------------------------------------------------------------------- */
+:root {
+  --entrance-duration: 300ms;
+  --entrance-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --entrance-stagger: 100ms;
+  --entrance-y-offset: 24px;
+}
+
+@keyframes entranceReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, var(--entrance-y-offset), 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.entrance-reveal {
+  opacity: 0;
+  animation: entranceReveal var(--entrance-duration) var(--entrance-ease) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ambient-glow-animated {
     animation: none !important;
   }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .entrance-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
 }
+
 

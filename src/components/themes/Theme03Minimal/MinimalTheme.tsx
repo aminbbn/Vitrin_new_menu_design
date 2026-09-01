@@ -25,6 +25,8 @@ import { AmbientBackground } from '../../common/AmbientBackground';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import { useHeroTransition } from '../../../hooks/useHeroTransition';
+import { EntranceSection, EntranceItem } from '../../../motion';
+
 
 interface MinimalThemeProps {
   restaurant: RestaurantData;
@@ -145,7 +147,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
         </div>
 
         {/* Top Header Bar Area */}
-        <div className="relative z-10 w-full px-4 sm:px-6 pt-4 max-w-xl mx-auto flex items-center justify-between">
+        <EntranceItem index={0} className="relative z-10 w-full px-4 sm:px-6 pt-4 max-w-xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-neutral-900 border border-teal-500/30 flex-shrink-0">
               <img
@@ -160,7 +162,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 {restaurant.name}
               </h1>
               <p className="text-[11px] text-teal-400 font-medium">
-                {restaurant.cuisine} • {restaurant.neighborhood}
+                {restaurant.cuisine}
               </p>
             </div>
           </div>
@@ -172,7 +174,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 onClick={returnToHero}
                 id="minimal-reset-btn"
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neutral-900 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-neutral-800 active:scale-95 cursor-pointer shadow"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-neutral-900 border border-teal-500/30 text-teal-300 text-xs font-semibold hover:bg-neutral-800 active:scale-95 cursor-pointer shadow whitespace-nowrap"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="text-[11px]">معرفی</span>
@@ -182,13 +184,13 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
             <button
               onClick={() => setIsInfoOpen(true)}
               id="minimal-header-info-btn"
-              className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-700/80 flex items-center justify-center text-neutral-300 hover:text-white active:scale-95 transition-all cursor-pointer shadow"
+              className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-700/80 flex items-center justify-center text-neutral-300 hover:text-white active:scale-95 transition-all cursor-pointer shadow shrink-0"
               aria-label="اطلاعات رستوران"
             >
               <Info className="w-4 h-4 text-teal-300" />
             </button>
           </div>
-        </div>
+        </EntranceItem>
 
         {/* Hero Architectural Layout */}
         <AnimatePresence>
@@ -202,50 +204,50 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
               }}
               transition={{ duration: 0.5 }}
-              className="relative z-10 px-6 py-6 max-w-xl mx-auto w-full flex flex-col justify-between space-y-6 my-auto"
+              className="relative z-10 px-5 py-4 max-w-xl mx-auto w-full flex flex-col justify-between space-y-4 mt-auto mb-6 sm:mb-10 text-right"
             >
-              <div className="space-y-4 text-right">
-                <div className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium">
+              <div className="space-y-3.5">
+                <EntranceItem index={1} className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium">
                   منوی رستوران و کافه
-                </div>
+                </EntranceItem>
 
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight tracking-tight">
+                <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
                   {config.hero.headline}
-                </h2>
+                </EntranceItem>
 
-                <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light">
+                <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light max-w-xs sm:max-w-sm">
                   {config.hero.subheadline}
-                </p>
+                </EntranceItem>
 
                 {/* Minimal Meta Items */}
-                <div className="pt-2 border-t border-neutral-800/80 grid grid-cols-2 gap-4 text-xs">
+                <EntranceItem index={4} className="pt-2 border-t border-neutral-800/80 grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <span className="text-neutral-500 block text-[10px] mb-0.5">ساعات فعالیت</span>
                     <span className="font-semibold text-neutral-200">{toPersianDigits(restaurant.workingHours)}</span>
                   </div>
                   <div>
-                    <span className="text-neutral-500 block text-[10px] mb-0.5">موقعیت</span>
-                    <span className="font-semibold text-neutral-200">{restaurant.neighborhood}</span>
+                    <span className="text-neutral-500 block text-[10px] mb-0.5">تعداد اقلام منو</span>
+                    <span className="font-semibold text-neutral-200">{toPersianDigits(restaurant.items.length)} خوراک و نوشیدنی</span>
                   </div>
-                </div>
+                </EntranceItem>
               </div>
 
-              {/* Minimalist Action Button with Tactile Feedback */}
-              <div className="pt-2">
+              {/* Minimalist Action Button with generous breathing room */}
+              <EntranceItem index={5} className="pt-4 sm:pt-6">
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => enterMenu('cta')}
                   id="minimal-enter-menu-btn"
-                  className="w-full py-4 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-extrabold text-base active:scale-[0.98] transition-all flex items-center justify-between cursor-pointer shadow-lg shadow-teal-950/40"
+                  className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-between cursor-pointer shadow-lg shadow-teal-950/40 whitespace-nowrap"
                 >
-                  <span>{config.hero.ctaText}</span>
-                  <ChevronDown className="w-5 h-5" />
+                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
+                  <ChevronDown className="w-4 h-4" />
                 </motion.button>
-              </div>
+              </EntranceItem>
 
-              <div className="text-neutral-400 text-xs font-light text-center">
+              <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light text-center">
                 جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </div>
+              </EntranceItem>
             </motion.div>
           )}
         </AnimatePresence>
@@ -338,14 +340,14 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
           if (items.length === 0) return null;
 
           return (
-            <section
+            <EntranceSection
               key={category.id}
               id={`minimal-cat-${category.id}`}
-              data-category-id={category.id}
+              dataCategoryId={category.id}
               className="space-y-3 scroll-mt-20"
             >
               {/* Architectural Category Header */}
-              <div className="flex items-baseline justify-between border-b border-neutral-800/80 pb-2">
+              <EntranceItem index={0} className="flex items-baseline justify-between border-b border-neutral-800/80 pb-2">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
                   <h3 className="font-bold text-base text-white tracking-tight">
@@ -355,20 +357,21 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 <span className="text-[11px] text-teal-400/80 font-medium">
                   {toPersianDigits(items.length)} عنوان
                 </span>
-              </div>
+              </EntranceItem>
 
               {/* Borderless Typographic Rows */}
               <div className="divide-y divide-neutral-900/80">
-                {items.map((item) => (
-                  <MinimalItemRow
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    accentColor={config.accentColor || '#2dd4bf'}
-                  />
+                {items.map((item, idx) => (
+                  <EntranceItem key={item.id} index={idx + 1}>
+                    <MinimalItemRow
+                      item={item}
+                      onSelect={setSelectedItem}
+                      accentColor={config.accentColor || '#2dd4bf'}
+                    />
+                  </EntranceItem>
                 ))}
               </div>
-            </section>
+            </EntranceSection>
           );
         })}
       </main>
@@ -426,21 +429,21 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
     <div
       onClick={() => onSelect(item)}
       id={`minimal-item-${item.id}`}
-      className={`py-3 px-3 rounded-2xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
+      className={`py-3 px-3.5 rounded-2xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
         quantity > 0
-          ? 'bg-teal-950/25 border border-teal-500/30'
-          : 'hover:bg-neutral-900/60'
+          ? 'bg-teal-950/25 border border-teal-500/30 shadow-sm'
+          : 'hover:bg-neutral-900/60 border border-transparent'
       } ${isSoldOut ? 'opacity-55' : ''}`}
     >
       {/* Content Side */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-        {/* Row 1: Title & Price */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 text-right">
+        {/* Row 1: Title (Primary element) & Price (Lighter) */}
         <div className="flex items-center justify-between gap-2 min-w-0">
-          <h4 className="font-medium text-sm text-neutral-100 group-hover:text-teal-300 transition-colors truncate">
+          <h4 className="font-semibold text-sm text-neutral-100 group-hover:text-teal-300 transition-colors truncate">
             {item.name}
           </h4>
 
-          <span className="text-sm font-semibold text-teal-300 shrink-0 tracking-tight whitespace-nowrap">
+          <span className="text-xs sm:text-sm font-normal text-teal-300/90 shrink-0 tracking-tight whitespace-nowrap">
             {formatToman(item.price)}
           </span>
         </div>
@@ -453,16 +456,22 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
         </div>
 
         {/* Row 3: Subtle Quantity or Detail Indication */}
-        {quantity > 0 && (
+        {quantity > 0 ? (
           <div className="mt-1.5 flex items-center">
             <span className="text-[9px] font-medium text-teal-300 bg-teal-950/60 border border-teal-500/30 px-2 py-0.2 rounded-full whitespace-nowrap">
               {toPersianDigits(quantity)} انتخاب شده
             </span>
           </div>
+        ) : (
+          <div className="mt-1 flex items-center justify-end">
+            <span className="text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light whitespace-nowrap">
+              جزئیات
+            </span>
+          </div>
         )}
       </div>
 
-      {/* Clean Architectural Thumbnail & Floating Badge */}
+      {/* Clean Architectural Thumbnail */}
       <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-neutral-950 shrink-0 border border-neutral-800">
         <img
           src={item.image}
@@ -473,16 +482,9 @@ const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColo
           loading="lazy"
         />
 
-        {/* Floating Special Badge on Image */}
-        {item.badge && (
-          <span className="absolute top-1 right-1 bg-teal-400 text-neutral-950 text-[8px] font-bold px-1.5 py-0.2 rounded shadow whitespace-nowrap z-10">
-            {item.badge}
-          </span>
-        )}
-
         {isSoldOut && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[9px] font-medium text-neutral-300">ناموجود</span>
+            <span className="text-[9px] font-medium text-neutral-300 whitespace-nowrap">ناموجود</span>
           </div>
         )}
       </div>
