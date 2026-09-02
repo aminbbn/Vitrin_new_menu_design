@@ -60,6 +60,25 @@ export interface RestaurantData {
   items: MenuItem[];
 }
 
+export interface ImmersiveExperienceSettings {
+  focalPosition: 'top' | 'center' | 'bottom';
+  overlayStrength: 'soft' | 'balanced' | 'strong';
+  showOperationalInfo: boolean;
+  showFeaturedSection: boolean;
+}
+
+export interface ModernExperienceSettings {
+  focalPosition: 'top' | 'center' | 'bottom';
+  washStrength: 'subtle' | 'balanced' | 'strong';
+  categoryAppearance: 'outline' | 'filled';
+  showItemCounts: boolean;
+}
+
+export interface MinimalExperienceSettings {
+  focalPosition: 'top' | 'center' | 'bottom';
+  gradientStrength: 'subtle' | 'balanced' | 'strong';
+}
+
 export interface MenuThemeConfig {
   id: ThemeId;
   name: string;
@@ -82,6 +101,9 @@ export interface MenuThemeConfig {
   };
   categoryNavigationVariant: 'active-category-sheet' | 'primary-shortcuts-sheet';
   cardLayout: 'editorial-card' | 'modern-horizontal-vertical' | 'minimal-asymmetric';
+  immersiveSettings?: ImmersiveExperienceSettings;
+  modernSettings?: ModernExperienceSettings;
+  minimalSettings?: MinimalExperienceSettings;
 }
 
 export interface SelectionItem {

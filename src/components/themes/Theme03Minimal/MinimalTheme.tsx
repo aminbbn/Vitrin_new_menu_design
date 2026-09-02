@@ -170,7 +170,13 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               <SafeImage
                 src={restaurant.heroImage}
                 alt={restaurant.name}
-                className="w-full h-full object-cover object-center"
+                className={`w-full h-full object-cover ${
+                  config.minimalSettings?.focalPosition === 'top'
+                    ? 'object-top'
+                    : config.minimalSettings?.focalPosition === 'bottom'
+                    ? 'object-bottom'
+                    : 'object-center'
+                }`}
                 fallbackContainerClassName="w-full h-full bg-neutral-900"
                 fallbackIconClassName="w-12 h-12 text-neutral-600"
                 priority
@@ -194,12 +200,12 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               </div>
             </header>
 
-            {/* 1.2 Restaurant Identity Section */}
-            <EntranceSection className="w-full max-w-4xl mx-auto px-4 sm:px-6 -mt-10 sm:-mt-12 relative z-10 space-y-4">
+            {/* 1.2 Restaurant Identity Section (Horizontal Alignment on Mobile & Desktop) */}
+            <EntranceSection className="w-full max-w-4xl mx-auto px-4 sm:px-6 -mt-8 sm:-mt-10 relative z-10 space-y-4">
               <EntranceItem index={0}>
-                <div className="flex flex-col sm:flex-row sm:items-end gap-3.5 sm:gap-5 pb-2">
+                <div className="flex items-center gap-3.5 sm:gap-4 pb-2">
                   {/* Logo Container */}
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl p-2 bg-[#16181d] border border-white/15 shadow-xl shrink-0 flex items-center justify-center overflow-hidden">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl p-1.5 bg-[#16181d] border border-white/15 shadow-xl shrink-0 flex items-center justify-center overflow-hidden">
                     <SafeImage
                       src={restaurant.logo}
                       alt={restaurant.name}
@@ -209,18 +215,11 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                     />
                   </div>
 
-                  {/* Name, Tagline & Cuisine */}
+                  {/* Name & Single Tagline Description (No cuisine chip) */}
                   <div className="min-w-0 flex-1 space-y-1 text-right">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h1 className="font-bold text-xl sm:text-2xl md:text-3xl text-white tracking-tight leading-tight">
-                        {restaurant.name}
-                      </h1>
-                      {restaurant.cuisine && (
-                        <span className="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-white/10 text-neutral-300 border border-white/10">
-                          {restaurant.cuisine}
-                        </span>
-                      )}
-                    </div>
+                    <h1 className="font-bold text-lg sm:text-2xl md:text-3xl text-white tracking-tight leading-tight truncate">
+                      {restaurant.name}
+                    </h1>
 
                     {restaurant.tagline && (
                       <p className="text-xs sm:text-sm text-neutral-400 font-light leading-relaxed max-w-xl line-clamp-2">
@@ -231,7 +230,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 </div>
               </EntranceItem>
 
-              {/* 1.3 Photographic Category Gallery */}
+              {/* 1.3 Photographic Category Gallery (Clean 2-col on Mobile = 3x2 Grid) */}
               <div className="pt-2 pb-16 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between pb-1 text-right">
                   <div className="flex items-center gap-2">
@@ -249,8 +248,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                   </span>
                 </div>
 
-                {/* Responsive Grid: 1 col mobile, 2 cols tablet, 3 cols desktop */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                {/* 3x2 Grid on Mobile (2 cols), 3 cols on Desktop */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
                   {restaurant.categories.map((category, index) => (
                     <EntranceItem key={category.id} index={index + 1}>
                       <CategoryGalleryCard
@@ -258,6 +257,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                         items={restaurant.items}
                         restaurantHeroImage={restaurant.heroImage}
                         accentColor={accentColor}
+                        gradientStrength={config.minimalSettings?.gradientStrength}
                         onSelect={handleSelectCategory}
                         index={index}
                       />

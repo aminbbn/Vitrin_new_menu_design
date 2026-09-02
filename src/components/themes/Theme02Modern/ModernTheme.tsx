@@ -138,7 +138,13 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
               <SafeImage
                 src={restaurant.heroImage}
                 alt={restaurant.name}
-                className="w-full h-full object-cover object-center scale-105"
+                className={`w-full h-full object-cover scale-105 ${
+                  config.modernSettings?.focalPosition === 'top'
+                    ? 'object-top'
+                    : config.modernSettings?.focalPosition === 'bottom'
+                    ? 'object-bottom'
+                    : 'object-center'
+                }`}
                 fallbackContainerClassName="w-full h-full bg-stone-200"
                 fallbackIconClassName="w-12 h-12 text-stone-400"
               />
@@ -148,7 +154,11 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 className="absolute inset-0"
                 style={{
                   background:
-                    'linear-gradient(180deg, rgba(250, 248, 245, 0.88) 0%, rgba(245, 240, 230, 0.92) 40%, rgba(250, 248, 245, 0.96) 100%)',
+                    config.modernSettings?.washStrength === 'subtle'
+                      ? 'linear-gradient(180deg, rgba(250, 248, 245, 0.72) 0%, rgba(245, 240, 230, 0.80) 40%, rgba(250, 248, 245, 0.88) 100%)'
+                      : config.modernSettings?.washStrength === 'strong'
+                      ? 'linear-gradient(180deg, rgba(250, 248, 245, 0.95) 0%, rgba(245, 240, 230, 0.97) 40%, rgba(250, 248, 245, 0.99) 100%)'
+                      : 'linear-gradient(180deg, rgba(250, 248, 245, 0.88) 0%, rgba(245, 240, 230, 0.92) 40%, rgba(250, 248, 245, 0.96) 100%)',
                 }}
               />
 
@@ -235,10 +245,14 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                           <button
                             type="button"
                             onClick={() => handleSelectCategory(category.id)}
-                            className={`w-full min-h-[48px] sm:min-h-[52px] px-4 py-3 rounded-2xl bg-white/92 hover:bg-white active:bg-stone-50 border transition-all duration-150 flex items-center justify-between gap-3 text-right cursor-pointer group shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] ${
+                            className={`w-full min-h-[48px] sm:min-h-[52px] px-4 py-3 rounded-2xl transition-all duration-150 flex items-center justify-between gap-3 text-right cursor-pointer group ${
+                              config.modernSettings?.categoryAppearance === 'outline'
+                                ? 'bg-white/80 hover:bg-white border border-stone-300/80 shadow-none'
+                                : 'bg-white hover:bg-stone-50/90 border border-stone-200/90 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]'
+                            } ${
                               isPressed
                                 ? 'scale-[0.985] border-stone-400 bg-stone-100 shadow-inner'
-                                : 'border-stone-200/90 hover:border-stone-300'
+                                : ''
                             }`}
                             style={{
                               borderColor: isPressed ? accentColor : undefined,
@@ -257,9 +271,11 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
 
                             {/* Left (RTL): Count Indicator & Clean Directional Arrow */}
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-xs text-stone-400 group-hover:text-stone-600 font-normal transition-colors whitespace-nowrap">
-                                {toPersianDigits(itemCount)} خوراک
-                              </span>
+                              {(config.modernSettings?.showItemCounts ?? true) && (
+                                <span className="text-xs text-stone-400 group-hover:text-stone-600 font-normal transition-colors whitespace-nowrap">
+                                  {toPersianDigits(itemCount)} خوراک
+                                </span>
+                              )}
                               <div
                                 className="w-6 h-6 rounded-full flex items-center justify-center transition-transform group-hover:translate-x-[-3px]"
                                 style={{

@@ -321,7 +321,7 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
   immersive: {
     id: 'immersive',
     name: 'Theme 01: Immersive / Editorial',
-    nameFa: 'پوسته اول — غوطه‌ور و تحریریه‌ای (Immersive Editorial)',
+    nameFa: 'پوسته اول — تجربه سینمایی و غوطه‌ور (Immersive Editorial)',
     descriptionFa: 'طراحی سینمایی، دارک، لوکس با تصویر تمام‌صفحه و ترنزیشن پیوسته به هدر فشرده چسبان',
     accentColor: '#d4af37', // Gold
     accentColorLight: '#f3e5ab',
@@ -340,13 +340,19 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
     },
     categoryNavigationVariant: 'active-category-sheet',
     cardLayout: 'editorial-card',
+    immersiveSettings: {
+      focalPosition: 'center',
+      overlayStrength: 'balanced',
+      showOperationalInfo: true,
+      showFeaturedSection: true,
+    },
   },
   modern: {
     id: 'modern',
-    name: 'Theme 02: Modern / Hospitality Booklet',
-    nameFa: 'پوسته دوم — بوکلت مهمان‌نوازی و دسته‌بندی (Hospitality Gateway)',
-    descriptionFa: 'کاور تمام‌صفحه با هویت برند، دروازه عمودی دسته‌بندی‌ها و انتقال سریع به صفحات اختصاصی منو',
-    accentColor: '#0f766e', // Deep Hospitality Teal / Evergreen (Customizable)
+    name: 'Theme 02: Modern / Hospitality Menu Book',
+    nameFa: 'پوسته دوم — بوکلت مهمان‌نوازی و کاور منو (Hospitality Gateway)',
+    descriptionFa: 'کاور تمام‌صفحه با هویت برند، دروازه عمودی دسته‌بندی‌ها و مرور تخصصی اقلام منو',
+    accentColor: '#0f766e', // Deep Hospitality Teal / Evergreen
     accentColorLight: '#ccfbf1',
     bgColor: '#FAF8F5', // Warm Ivory / Paper
     cardBgColor: '#FFFFFF',
@@ -363,28 +369,38 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
     },
     categoryNavigationVariant: 'primary-shortcuts-sheet',
     cardLayout: 'modern-horizontal-vertical',
+    modernSettings: {
+      focalPosition: 'center',
+      washStrength: 'balanced',
+      categoryAppearance: 'outline',
+      showItemCounts: true,
+    },
   },
   minimal: {
     id: 'minimal',
-    name: 'Theme 03: Minimal / Design-Led',
-    nameFa: 'پوسته سوم — مینیمال و دیزاین‌محور (Architectural Minimal)',
-    descriptionFa: 'ترکیب هندسی دوگانه، تایپوگرافی برجسته، ترنزیشن ماسک و کشف محتوا، ریتم نامتقارن',
-    accentColor: '#2dd4bf', // Architectural Teal / Sage
-    accentColorLight: '#ccfbf1',
-    bgColor: '#18181b', // Crisp zinc/charcoal
-    cardBgColor: '#27272a',
-    textColor: '#fafafa',
-    mutedTextColor: '#a1a1aa',
+    name: 'Theme 03: Visual Explorer / Category-First',
+    nameFa: 'پوسته سوم — کاوشگر تصویری و دسته‌بندی‌محور (Visual Category Explorer)',
+    descriptionFa: 'تجربه بصری تصویرمحور، گالری مربعی دسته‌بندی‌ها و فید عکاسی عریض خوراک‌ها با تایپوگرافی تمیز',
+    accentColor: '#38bdf8', // Vibrant Sky / Cyan
+    accentColorLight: '#bae6fd',
+    bgColor: '#0d0f12', // Deep photographic dark
+    cardBgColor: '#16181d',
+    textColor: '#f8fafc',
+    mutedTextColor: '#94a3b8',
     fontFamily: 'minimal',
     borderRadius: 'sm',
     hero: {
       type: 'architectural-split',
-      headline: 'بونو • طعم و معماری',
-      subheadline: 'کالکشن فصلی خوراک و نوشیدنی‌های تخصصی',
+      headline: 'بونو • کاوشگر تصویری منو',
+      subheadline: 'تجربه اصیل طعم‌های مدیترانه‌ای با رویکرد مدرن',
       ctaText: 'ورود به منو',
-      transitionDurationMs: 650,
+      transitionDurationMs: 300,
     },
     categoryNavigationVariant: 'active-category-sheet',
     cardLayout: 'minimal-asymmetric',
+    minimalSettings: {
+      focalPosition: 'center',
+      gradientStrength: 'balanced',
+    },
   },
 };

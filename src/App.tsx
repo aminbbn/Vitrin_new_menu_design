@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ThemeId, MenuThemeConfig } from './types/menu';
+import { ThemeId, MenuThemeConfig, RestaurantData } from './types/menu';
 import { mockRestaurantData, themeConfigs } from './data/mockMenuData';
 import { ThemeRenderer } from './components/ThemeRenderer';
 import { ShowcaseToolbar } from './components/showcase/ShowcaseToolbar';
@@ -18,12 +18,15 @@ export default function App() {
   const [activePreset, setActivePreset] = useState<DevicePreset>(DEVICE_PRESETS.mobile[1]); // Default 390x844
   const [isDashboardMode, setIsDashboardMode] = useState(false);
 
+  // Editable Restaurant Data state
+  const [restaurant, setRestaurant] = useState<RestaurantData>(() =>
+    structuredClone(mockRestaurantData)
+  );
+
   // Dynamic config with custom overrides
-  const [configs, setConfigs] = useState<Record<string, MenuThemeConfig>>({
-    immersive: { ...themeConfigs.immersive },
-    modern: { ...themeConfigs.modern },
-    minimal: { ...themeConfigs.minimal },
-  });
+  const [configs, setConfigs] = useState<Record<string, MenuThemeConfig>>(() =>
+    structuredClone(themeConfigs)
+  );
 
   const activeConfig = configs[currentTheme];
 
@@ -34,10 +37,11 @@ export default function App() {
     }));
   };
 
-  const handleResetConfig = () => {
+  const handleReset = () => {
+    setRestaurant(structuredClone(mockRestaurantData));
     setConfigs((prev) => ({
       ...prev,
-      [currentTheme]: { ...themeConfigs[currentTheme] },
+      [currentTheme]: structuredClone(themeConfigs[currentTheme]),
     }));
   };
 
@@ -75,9 +79,11 @@ export default function App() {
             {/* Left/Sidebar: Vitrin Theme Experience Customizer */}
             <div className="w-full lg:w-96 flex-shrink-0 max-h-[85vh] overflow-y-auto no-scrollbar">
               <ThemeCustomizer
+                restaurant={restaurant}
                 config={activeConfig}
-                onChange={handleConfigChange}
-                onReset={handleResetConfig}
+                onRestaurantChange={setRestaurant}
+                onConfigChange={handleConfigChange}
+                onReset={handleReset}
               />
             </div>
 
@@ -91,7 +97,7 @@ export default function App() {
                 <ThemeRenderer
                   key={currentTheme}
                   themeId={currentTheme}
-                  restaurant={mockRestaurantData}
+                  restaurant={restaurant}
                   config={activeConfig}
                   initialState={currentState}
                   onStateChange={setCurrentState}
@@ -113,7 +119,7 @@ export default function App() {
               <ThemeRenderer
                 key={currentTheme}
                 themeId={currentTheme}
-                restaurant={mockRestaurantData}
+                restaurant={restaurant}
                 config={activeConfig}
                 initialState={currentState}
                 onStateChange={setCurrentState}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Check } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { MenuItem } from '../../../types/menu';
 import { formatToman, toPersianDigits } from '../../../utils/formatters';
 import { SafeImage } from '../../common/SafeImage';
@@ -22,9 +22,8 @@ export const VisualProductItem: React.FC<VisualProductItemProps> = ({
   const currentQty = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
   const isLowStock = item.availability === 'low_stock';
-  const isFeatured = Boolean(item.isSpecial || item.isFeatured);
 
-  // Derive a single primary badge if applicable
+  // Primary badge label
   const primaryBadge = item.isSpecial
     ? 'پیشنهاد سرآشپز'
     : item.isFeatured
@@ -41,23 +40,23 @@ export const VisualProductItem: React.FC<VisualProductItemProps> = ({
       dir="rtl"
       aria-label={`مشاهده مشخصات ${item.name}`}
     >
-      {/* 1. PHOTOGRAPHIC IMAGE CANVAS (Full width, stable 16:10 aspect ratio) */}
+      {/* 1. PHOTOGRAPHIC IMAGE CANVAS (Square 1:1 Aspect Ratio) */}
       <div
-        className={`relative w-full overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 shadow-md group-hover:border-white/20 transition-all duration-300 ${
-          isFeatured ? 'aspect-[16/11] sm:aspect-[16/10]' : 'aspect-[16/10]'
-        } ${isSoldOut ? 'opacity-65 grayscale-[40%]' : ''}`}
+        className={`relative w-full aspect-square overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 shadow-md group-hover:border-white/20 transition-all duration-300 ${
+          isSoldOut ? 'opacity-65 grayscale-[40%]' : ''
+        }`}
       >
         <SafeImage
           src={item.image}
           alt={item.name}
-          className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500 ease-out"
+          className="w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-500 ease-out"
           fallbackContainerClassName="w-full h-full bg-neutral-900 flex items-center justify-center"
           fallbackIconClassName="w-10 h-10 text-neutral-700"
           loading="lazy"
         />
 
-        {/* Natural gradient vignette for overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+        {/* Natural subtle gradient vignette for badges */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/25 pointer-events-none" />
 
         {/* Top Badges & Statuses */}
         <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2 pointer-events-none z-10">
@@ -86,9 +85,9 @@ export const VisualProductItem: React.FC<VisualProductItemProps> = ({
             )}
           </div>
 
-          {/* Left (RTL): Subtle Selection Pill (Only if selected > 0) */}
+          {/* Left (RTL): Selected Quantity Badge */}
           {currentQty > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/75 text-white backdrop-blur-md border border-white/25 shadow-md">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/80 text-white backdrop-blur-md border border-white/25 shadow-md">
               <span
                 className="w-2 h-2 rounded-full inline-block"
                 style={{ backgroundColor: accentColor }}
@@ -99,29 +98,30 @@ export const VisualProductItem: React.FC<VisualProductItemProps> = ({
         </div>
       </div>
 
-      {/* 2. CLEAN CAPTION AREA (Immediately below image) */}
-      <div className="pt-2.5 sm:pt-3 space-y-1 text-right">
-        {/* Row 1: Title + Price */}
-        <div className="flex items-baseline justify-between gap-3">
-          <h3 className="font-semibold text-sm sm:text-base text-white tracking-tight truncate flex-1 group-hover:text-neutral-100 transition-colors">
-            {item.name}
-          </h3>
+      {/* 2. CAPTION HIERARCHY: Title -> Description -> Price */}
+      <div className="pt-3 space-y-1.5 text-right">
+        {/* Level 1: Product Title */}
+        <h3 className="font-bold text-sm sm:text-base text-white tracking-tight leading-snug group-hover:text-amber-200/90 transition-colors">
+          {item.name}
+        </h3>
 
-          <span className="shrink-0 text-xs sm:text-[13px] font-normal text-neutral-300 tracking-tight whitespace-nowrap">
-            {formatToman(item.price)}
-          </span>
-        </div>
-
-        {/* Row 2: Short Description */}
+        {/* Level 2: Description */}
         {item.description && (
-          <p className="text-xs text-neutral-400 font-light truncate leading-relaxed max-w-xl">
+          <p className="text-xs text-neutral-400 font-light line-clamp-2 leading-relaxed">
             {item.description}
           </p>
         )}
+
+        {/* Level 3: Price */}
+        <div className="pt-0.5">
+          <span className="text-xs sm:text-sm font-semibold text-neutral-200 tracking-tight">
+            {formatToman(item.price)}
+          </span>
+        </div>
       </div>
 
-      {/* 3. Subtle Rhythmic Divider */}
-      <div className="pt-5 sm:pt-6 pb-1">
+      {/* 3. Subtle Clean Divider */}
+      <div className="pt-5 pb-1">
         <div className="w-full h-px bg-white/5" />
       </div>
     </motion.article>

@@ -153,11 +153,31 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
           <img
             src={restaurant.heroImage}
             alt={restaurant.name}
-            className="w-full h-full object-cover object-center filter brightness-[0.75] transition-all duration-700"
+            className={`w-full h-full object-cover filter brightness-[0.75] transition-all duration-700 ${
+              config.immersiveSettings?.focalPosition === 'top'
+                ? 'object-top'
+                : config.immersiveSettings?.focalPosition === 'bottom'
+                ? 'object-bottom'
+                : 'object-center'
+            }`}
           />
-          {/* Rich cinematic vignette gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#090d12] via-[#090d12]/50 to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#090d12]" />
+          {/* Rich cinematic vignette gradients according to overlayStrength */}
+          {config.immersiveSettings?.overlayStrength === 'soft' ? (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#090d12]/90 via-[#090d12]/35 to-black/25" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#090d12]/90" />
+            </>
+          ) : config.immersiveSettings?.overlayStrength === 'strong' ? (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#090d12] via-[#090d12]/80 to-black/70" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-[#090d12]" />
+            </>
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#090d12] via-[#090d12]/50 to-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#090d12]" />
+            </>
+          )}
         </div>
 
         {/* Top Hero Brand Header (Anchored identity in both full and short hero) */}
@@ -230,13 +250,15 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               </EntranceItem>
 
               {/* Interactive Expandable Information Pills (Equal default frames, click to expand full line) */}
-              <EntranceItem index={4} className="w-full pt-1">
-                <HeroInfoPills
-                  workingHours={restaurant.workingHours}
-                  location={restaurant.neighborhood}
-                  themeId="immersive"
-                />
-              </EntranceItem>
+              {(config.immersiveSettings?.showOperationalInfo ?? true) && (
+                <EntranceItem index={4} className="w-full pt-1">
+                  <HeroInfoPills
+                    workingHours={restaurant.workingHours}
+                    location={restaurant.neighborhood}
+                    themeId="immersive"
+                  />
+                </EntranceItem>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -395,7 +417,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         ) : (
           <>
             {/* Featured / Signature Section */}
-            {featuredItems.length > 0 && (
+            {featuredItems.length > 0 && (config.immersiveSettings?.showFeaturedSection ?? true) && (
               <EntranceSection className="space-y-3.5">
                 <div className="flex items-center justify-between border-b border-neutral-800/80 pb-2.5" dir="rtl">
                   <div className="text-right">
