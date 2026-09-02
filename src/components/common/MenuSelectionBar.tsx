@@ -46,6 +46,8 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
     }
   }, [totalCount, isSimulated]);
 
+  const isModernTheme = themeId === 'modern';
+
   return (
     <OverlayPortal>
       <AnimatePresence>
@@ -64,14 +66,18 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
               ref={barRef}
               onClick={() => setIsSelectionSheetOpen(true)}
               id="menu-selection-sticky-bar"
-              className="w-full relative bg-neutral-950/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl p-3 shadow-[0_12px_36px_rgba(0,0,0,0.85)] flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group overflow-hidden select-none"
+              className={`w-full relative backdrop-blur-xl rounded-2xl p-3 flex items-center justify-between cursor-pointer active:scale-[0.99] transition-all group overflow-hidden select-none border ${
+                isModernTheme
+                  ? 'bg-[#FAF8F5]/98 border-stone-300 shadow-[0_12px_36px_rgba(0,0,0,0.14)] text-stone-900'
+                  : 'bg-neutral-950/95 border-neutral-700/80 shadow-[0_12px_36px_rgba(0,0,0,0.85)] text-white'
+              }`}
               style={{
-                borderColor: `${accentColor}50`,
+                borderColor: isModernTheme ? `${accentColor}40` : `${accentColor}50`,
               }}
             >
-              {/* Subtle Glow Accent */}
+              {/* Subtle Radiance Accent */}
               <div
-                className="absolute top-0 right-0 w-32 h-full opacity-15 pointer-events-none blur-xl"
+                className="absolute top-0 right-0 w-32 h-full opacity-10 pointer-events-none blur-xl"
                 style={{ backgroundColor: accentColor }}
               />
 
@@ -79,7 +85,7 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
               <div className="flex items-center gap-2.5 min-w-0 flex-1 pl-2">
                 {/* Badge Count */}
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-md text-neutral-950 shrink-0"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs text-white shrink-0"
                   style={{ backgroundColor: accentColor }}
                 >
                   <span className="leading-none">{toPersianDigits(totalCount)}</span>
@@ -87,13 +93,25 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
 
                 {/* Text Block: Strictly Single Line */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1 text-xs text-neutral-300 font-medium whitespace-nowrap truncate">
+                  <div
+                    className={`flex items-center gap-1 text-xs font-medium whitespace-nowrap truncate ${
+                      isModernTheme ? 'text-stone-600' : 'text-neutral-300'
+                    }`}
+                  >
                     <span>انتخاب‌های من</span>
-                    <span className="text-[11px] text-neutral-400 font-light shrink-0">
+                    <span
+                      className={`text-[11px] font-light shrink-0 ${
+                        isModernTheme ? 'text-stone-400' : 'text-neutral-400'
+                      }`}
+                    >
                       ({toPersianDigits(totalCount)} مورد)
                     </span>
                   </div>
-                  <div className="text-xs sm:text-sm font-semibold text-white tracking-tight whitespace-nowrap truncate">
+                  <div
+                    className={`text-xs sm:text-sm font-semibold tracking-tight whitespace-nowrap truncate ${
+                      isModernTheme ? 'text-stone-900' : 'text-white'
+                    }`}
+                  >
                     {formatToman(totalPrice)}
                   </div>
                 </div>
@@ -102,7 +120,7 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
               {/* Action Button: Compact, Single-line, Shrink-0 */}
               <div className="shrink-0 flex items-center">
                 <span
-                  className="text-xs font-bold px-3 py-2 rounded-xl text-neutral-950 shadow-sm flex items-center gap-1 group-hover:brightness-110 active:scale-95 transition-all whitespace-nowrap"
+                  className="text-xs font-semibold px-3 py-2 rounded-xl text-white shadow-xs flex items-center gap-1 group-hover:brightness-105 active:scale-95 transition-all whitespace-nowrap"
                   style={{ backgroundColor: accentColor }}
                 >
                   <span>مشاهده</span>

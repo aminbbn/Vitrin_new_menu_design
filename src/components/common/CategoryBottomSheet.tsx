@@ -14,6 +14,7 @@ interface CategoryBottomSheetProps {
   activeCategoryId: string;
   onSelectCategory: (categoryId: string) => void;
   accentColor?: string;
+  themeId?: 'immersive' | 'modern' | 'minimal';
 }
 
 export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
@@ -24,6 +25,7 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
   activeCategoryId,
   onSelectCategory,
   accentColor = '#d4af37',
+  themeId = 'immersive',
 }) => {
   const pendingCategoryRef = useRef<string | null>(null);
 
@@ -54,6 +56,7 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
             onSelectCategory={handleSelect}
             onClose={onClose}
             accentColor={accentColor}
+            themeId={themeId}
           />
         )}
       </AnimatePresence>
@@ -68,6 +71,7 @@ interface CategoryBottomSheetContentProps {
   onSelectCategory: (categoryId: string) => void;
   onClose: () => void;
   accentColor: string;
+  themeId: 'immersive' | 'modern' | 'minimal';
 }
 
 const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
@@ -77,6 +81,7 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
   onSelectCategory,
   onClose,
   accentColor,
+  themeId,
 }) => {
   const { isSimulated, overlayPresentation, registerOverlay } = useMenuViewport();
 
@@ -85,6 +90,7 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
   }, [registerOverlay]);
 
   const isDesktop = overlayPresentation === 'desktop-modal';
+  const isModernTheme = themeId === 'modern';
 
   return (
     <div
@@ -101,7 +107,7 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm pointer-events-auto"
+        className="absolute inset-0 bg-black/75 backdrop-blur-sm pointer-events-auto"
       />
 
       {/* Sheet / Modal Container */}
@@ -110,27 +116,49 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
         animate={isDesktop ? { opacity: 1, scale: 1 } : { y: 0 }}
         exit={isDesktop ? { opacity: 0, scale: 0.95 } : { y: '100%' }}
         transition={isDesktop ? { duration: 0.2 } : { type: 'spring', damping: 28, stiffness: 320 }}
-        className={`relative w-full max-w-lg bg-neutral-900 border border-neutral-800 ${
+        className={`relative w-full max-w-lg ${
+          isModernTheme
+            ? 'bg-[#FAF8F5] border-stone-200 text-stone-900'
+            : 'bg-neutral-900 border-neutral-800 text-neutral-100'
+        } border ${
           isDesktop ? 'rounded-3xl max-h-[85%]' : 'rounded-t-3xl rounded-b-none border-b-0 max-h-[85%]'
-        } p-5 overflow-y-auto overscroll-contain no-scrollbar shadow-2xl z-10 text-neutral-100 flex flex-col pointer-events-auto`}
+        } p-5 overflow-y-auto overscroll-contain no-scrollbar shadow-2xl z-10 flex flex-col pointer-events-auto`}
       >
         {/* Pull Handle for mobile */}
         {!isDesktop && (
-          <div className="w-12 h-1.5 bg-neutral-700 rounded-full mx-auto mb-3 flex-shrink-0" />
+          <div
+            className={`w-12 h-1.5 rounded-full mx-auto mb-3 flex-shrink-0 ${
+              isModernTheme ? 'bg-stone-300' : 'bg-neutral-700'
+            }`}
+          />
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-neutral-800 flex-shrink-0">
+        <div
+          className={`flex items-center justify-between pb-4 border-b flex-shrink-0 ${
+            isModernTheme ? 'border-stone-200' : 'border-neutral-800'
+          }`}
+        >
           <div className="flex items-center gap-2">
             <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-neutral-950 font-bold"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold shadow-xs"
               style={{ backgroundColor: accentColor }}
             >
-              <Layers className="w-4 h-4 text-neutral-950" />
+              <Layers className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">دسته‌بندی‌های منو</h3>
-              <p className="text-xs text-neutral-400 font-light">
+              <h3
+                className={`text-base font-bold ${
+                  isModernTheme ? 'text-stone-900' : 'text-white'
+                }`}
+              >
+                دسته‌بندی‌های منو
+              </h3>
+              <p
+                className={`text-xs font-light ${
+                  isModernTheme ? 'text-stone-500' : 'text-neutral-400'
+                }`}
+              >
                 {toPersianDigits(categories.length)} بخش مختلف برای کاوش
               </p>
             </div>
@@ -138,7 +166,11 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-300 flex items-center justify-center transition-colors active:scale-95 cursor-pointer"
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors active:scale-95 cursor-pointer ${
+              isModernTheme
+                ? 'bg-stone-200/80 hover:bg-stone-300 text-stone-700'
+                : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+            }`}
             aria-label="بستن"
           >
             <X className="w-4 h-4" />
@@ -158,7 +190,11 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
                 onClick={() => onSelectCategory(category.id)}
                 id={`cat-sheet-item-${category.id}`}
                 className={`p-3.5 rounded-2xl text-right transition-all flex flex-col justify-between border cursor-pointer ${
-                  isActive
+                  isModernTheme
+                    ? isActive
+                      ? 'bg-white border-stone-400 shadow-sm'
+                      : 'bg-white/80 hover:bg-white border-stone-200 text-stone-700'
+                    : isActive
                     ? 'bg-neutral-800 border-white/30 shadow-lg'
                     : 'bg-neutral-950/60 hover:bg-neutral-800/80 border-neutral-800 text-neutral-300'
                 }`}
@@ -169,7 +205,13 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
                 <div className="flex items-start justify-between gap-1 w-full">
                   <span
                     className={`text-sm font-bold leading-tight ${
-                      isActive ? 'text-white' : 'text-neutral-200'
+                      isModernTheme
+                        ? isActive
+                          ? 'text-stone-900'
+                          : 'text-stone-800'
+                        : isActive
+                        ? 'text-white'
+                        : 'text-neutral-200'
                     }`}
                     style={{ color: isActive ? accentColor : undefined }}
                   >
@@ -179,17 +221,28 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
                   {isActive && (
                     <span
                       className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: accentColor, color: '#000' }}
+                      style={{ backgroundColor: accentColor, color: '#fff' }}
                     >
-                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                      <Check className="w-2.5 h-2.5 stroke-[3] text-white" />
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between w-full pt-2 mt-1 border-t border-neutral-800/60 text-[11px] text-neutral-400">
+                <div
+                  className={`flex items-center justify-between w-full pt-2 mt-1 border-t text-[11px] ${
+                    isModernTheme
+                      ? 'border-stone-100 text-stone-500'
+                      : 'border-neutral-800/60 text-neutral-400'
+                  }`}
+                >
                   <span>{toPersianDigits(catItemsCount)} آیتم</span>
                   {category.nameEn && (
-                    <span className="text-[10px] text-neutral-500 font-sans tracking-wide truncate max-w-[80px]" dir="ltr">
+                    <span
+                      className={`text-[10px] font-sans tracking-wide truncate max-w-[80px] ${
+                        isModernTheme ? 'text-stone-400' : 'text-neutral-500'
+                      }`}
+                      dir="ltr"
+                    >
                       {category.nameEn}
                     </span>
                   )}
@@ -200,9 +253,22 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
         </div>
 
         {/* Quick Info / All items count */}
-        <div className="mt-3 pt-3 border-t border-neutral-800 text-center flex-shrink-0">
-          <p className="text-xs text-neutral-400">
-            مجموع کل خوراک و نوشیدنی‌ها: <strong className="text-neutral-200">{toPersianDigits(items.length)} عنوان</strong>
+        <div
+          className={`mt-3 pt-3 border-t text-center flex-shrink-0 ${
+            isModernTheme ? 'border-stone-200' : 'border-neutral-800'
+          }`}
+        >
+          <p
+            className={`text-xs ${
+              isModernTheme ? 'text-stone-600' : 'text-neutral-400'
+            }`}
+          >
+            مجموع کل خوراک و نوشیدنی‌ها:{' '}
+            <strong
+              className={isModernTheme ? 'text-stone-900' : 'text-neutral-200'}
+            >
+              {toPersianDigits(items.length)} عنوان
+            </strong>
           </p>
         </div>
       </motion.div>

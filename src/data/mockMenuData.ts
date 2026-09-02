@@ -301,23 +301,23 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
   },
   modern: {
     id: 'modern',
-    name: 'Theme 02: Modern / Food-First',
-    nameFa: 'پوسته دوم — مدرن و خوراک‌محور (Food-First Fast Casual)',
-    descriptionFa: 'ارتفاع هیرو ۵۰vh، چیپ‌های دسته‌بندی چسبان برجسته، کارت‌های عمودی سریع و پویایی بالا',
-    accentColor: '#f97316', // Vibrant gourmet orange
-    accentColorLight: '#ffedd5',
-    bgColor: '#0f172a', // Deep slate navy
-    cardBgColor: '#1e293b',
-    textColor: '#ffffff',
-    mutedTextColor: '#cbd5e1',
+    name: 'Theme 02: Modern / Hospitality Booklet',
+    nameFa: 'پوسته دوم — بوکلت مهمان‌نوازی و دسته‌بندی (Hospitality Gateway)',
+    descriptionFa: 'کاور تمام‌صفحه با هویت برند، دروازه عمودی دسته‌بندی‌ها و انتقال سریع به صفحات اختصاصی منو',
+    accentColor: '#0f766e', // Deep Hospitality Teal / Evergreen (Customizable)
+    accentColorLight: '#ccfbf1',
+    bgColor: '#FAF8F5', // Warm Ivory / Paper
+    cardBgColor: '#FFFFFF',
+    textColor: '#1C1917', // Rich warm charcoal
+    mutedTextColor: '#78716C', // Warm stone gray
     fontFamily: 'modern',
     borderRadius: 'xl',
     hero: {
       type: 'split-compact',
-      headline: 'خوش‌طعم‌ترین تجربه‌ لحظه‌ها',
-      subheadline: 'سریع، تازه، با پخت هیزمی و دست‌ساز روزانه',
-      ctaText: 'مشاهده منو',
-      transitionDurationMs: 550,
+      headline: 'کاور و منوی دیجیتال بونو',
+      subheadline: 'انتخاب سریع دسته‌بندی و مطالعه اختصاصی اقلام منو',
+      ctaText: 'مشاهده دسته‌بندی‌ها',
+      transitionDurationMs: 300,
     },
     categoryNavigationVariant: 'primary-shortcuts-sheet',
     cardLayout: 'modern-horizontal-vertical',
