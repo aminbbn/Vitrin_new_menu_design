@@ -24,12 +24,13 @@ export const CategoryGalleryCard: React.FC<CategoryGalleryCardProps> = ({
 }) => {
   const imageUrl = getCategoryDisplayImage(category, items, restaurantHeroImage);
 
+  // Gradient concentrated in the bottom 35-45% for clear contrast without darkening the whole photograph
   const gradientClass =
     gradientStrength === 'subtle'
-      ? 'from-black/70 via-black/25 to-transparent'
+      ? 'from-black/85 via-black/40 via-40% to-transparent'
       : gradientStrength === 'strong'
-      ? 'from-black/95 via-black/55 to-transparent'
-      : 'from-black/85 via-black/40 to-transparent';
+      ? 'from-black/95 via-black/70 via-45% to-transparent'
+      : 'from-black/90 via-black/55 via-40% to-transparent';
 
   return (
     <motion.button
@@ -63,16 +64,11 @@ export const CategoryGalleryCard: React.FC<CategoryGalleryCardProps> = ({
         style={{ backgroundColor: accentColor }}
       />
 
-      {/* 4. Pure Category Name Label (No count, no arrow - clean photographic gallery card) */}
-      <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-4 z-10 pointer-events-none flex flex-col justify-end">
-        <h3 className="font-bold text-sm sm:text-base md:text-lg text-white tracking-tight drop-shadow-md truncate leading-snug">
+      {/* 4. Pure Persian Category Name Label (Smaller, 500/medium weight, max 2 intentional lines, no ellipsis, no English subtitle, no count) */}
+      <div className="absolute inset-x-0 bottom-0 p-2.5 sm:p-3 z-10 pointer-events-none flex flex-col justify-end">
+        <h3 className="font-medium text-[11.5px] sm:text-[13px] md:text-sm text-white/95 tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-snug line-clamp-2">
           {category.name}
         </h3>
-        {category.nameEn && (
-          <p className="text-[11px] text-neutral-300/80 font-light tracking-wide truncate mt-0.5">
-            {category.nameEn}
-          </p>
-        )}
       </div>
     </motion.button>
   );

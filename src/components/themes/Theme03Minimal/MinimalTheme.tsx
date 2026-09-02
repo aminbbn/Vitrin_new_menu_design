@@ -203,9 +203,9 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
             {/* 1.2 Restaurant Identity Section (Horizontal Alignment on Mobile & Desktop) */}
             <EntranceSection className="w-full max-w-4xl mx-auto px-4 sm:px-6 -mt-8 sm:-mt-10 relative z-10 space-y-4">
               <EntranceItem index={0}>
-                <div className="flex items-center gap-3.5 sm:gap-4 pb-2">
-                  {/* Logo Container */}
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl p-1.5 bg-[#16181d] border border-white/15 shadow-xl shrink-0 flex items-center justify-center overflow-hidden">
+                <div className="flex items-center gap-2.5 sm:gap-3.5 pb-2">
+                  {/* Logo Container (60-68px at mobile) */}
+                  <div className="w-[60px] h-[60px] sm:w-[68px] sm:h-[68px] md:w-20 md:h-20 rounded-2xl p-1.5 bg-[#16181d] border border-white/15 shadow-xl shrink-0 flex items-center justify-center overflow-hidden">
                     <SafeImage
                       src={restaurant.logo}
                       alt={restaurant.name}
@@ -215,14 +215,19 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                     />
                   </div>
 
-                  {/* Name & Single Tagline Description (No cuisine chip) */}
+                  {/* Name & Single Tagline Description (No truncation, fluid single-line font scaling, no cuisine chip) */}
                   <div className="min-w-0 flex-1 space-y-1 text-right">
-                    <h1 className="font-bold text-lg sm:text-2xl md:text-3xl text-white tracking-tight leading-tight truncate">
+                    <h1
+                      className="font-bold text-white tracking-tight leading-snug whitespace-nowrap"
+                      style={{
+                        fontSize: 'clamp(15px, 4.2vw, 24px)',
+                      }}
+                    >
                       {restaurant.name}
                     </h1>
 
                     {restaurant.tagline && (
-                      <p className="text-xs sm:text-sm text-neutral-400 font-light leading-relaxed max-w-xl line-clamp-2">
+                      <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light leading-relaxed max-w-xl line-clamp-2">
                         {restaurant.tagline}
                       </p>
                     )}
@@ -230,26 +235,22 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                 </div>
               </EntranceItem>
 
-              {/* 1.3 Photographic Category Gallery (Clean 2-col on Mobile = 3x2 Grid) */}
+              {/* 1.3 Photographic Category Gallery (Clean 2-col on Mobile = 3x2 Grid for 6 categories) */}
               <div className="pt-2 pb-16 space-y-3 sm:space-y-4">
-                <div className="flex items-center justify-between pb-1 text-right">
+                <div className="flex items-center justify-start pb-1 text-right">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-2 h-2 rounded-full"
+                      className="w-2 h-2 rounded-full shrink-0"
                       style={{ backgroundColor: accentColor }}
                     />
                     <h2 className="font-bold text-sm sm:text-base text-neutral-200 tracking-tight">
                       دسته‌بندی‌های منو
                     </h2>
                   </div>
-
-                  <span className="text-xs text-neutral-500 font-normal">
-                    {toPersianDigits(restaurant.categories.length)} دسته‌بندی
-                  </span>
                 </div>
 
-                {/* 3x2 Grid on Mobile (2 cols), 3 cols on Desktop */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
+                {/* 2 columns on Mobile (2 cols × 3 rows for 6 items), 3 cols on Desktop */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
                   {restaurant.categories.map((category, index) => (
                     <EntranceItem key={category.id} index={index + 1}>
                       <CategoryGalleryCard
