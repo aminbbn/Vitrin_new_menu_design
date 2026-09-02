@@ -65,6 +65,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const isNavigatingRef = useRef<boolean>(false);
+  const navigatingTimerRef = useRef<number | null>(null);
 
   // Intersection Observer for scroll tracking
   useEffect(() => {
@@ -73,22 +75,24 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
     const container = getScrollContainer();
     const observer = new IntersectionObserver(
       (entries) => {
+        if (isNavigatingRef.current) return;
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const catId = entry.target.getAttribute('data-category-id');
+            const catId = entry.target.getAttribute('data-category-id') || entry.target.getAttribute('data-category-section-id');
             if (catId) setActiveCategory(catId);
           }
         });
       },
       {
         root: container === window ? null : (container as HTMLElement),
-        rootMargin: '-80px 0px -65% 0px',
+        rootMargin: '-75px 0px -60% 0px',
         threshold: 0.1,
       }
     );
 
+    const rootTarget = container instanceof HTMLElement ? container : document;
     restaurant.categories.forEach((cat) => {
-      const el = document.getElementById(`modern-cat-${cat.id}`);
+      const el = rootTarget.querySelector<HTMLElement>(`[data-category-id="${cat.id}"], [data-category-section-id="${cat.id}"], #modern-cat-${cat.id}`);
       if (el) observer.observe(el);
     });
 
@@ -97,7 +101,12 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
 
   const handleCategoryClick = (catId: string) => {
     setActiveCategory(catId);
-    scrollToElement(`modern-cat-${catId}`, 75);
+    isNavigatingRef.current = true;
+    if (navigatingTimerRef.current) clearTimeout(navigatingTimerRef.current);
+    navigatingTimerRef.current = window.setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 900);
+    scrollToElement(catId, 76);
   };
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {
@@ -288,7 +297,10 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 2. STICKY CATEGORY NAVIGATOR & SEARCH                              */}
       {/* ------------------------------------------------------------------ */}
-      <div className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-y border-slate-800 shadow-md">
+      <div
+        data-sticky-nav="true"
+        className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-y border-slate-800 shadow-md"
+      >
         <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
           <button
             onClick={() => setIsCategorySheetOpen(true)}
@@ -348,7 +360,12 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 3. MENU STREAM CONTENT (Food-First Fast Scan Layout)               */}
       {/* ------------------------------------------------------------------ */}
-      <main className="max-w-2xl mx-auto px-4 pt-6 space-y-9 pb-28 relative z-10">
+      <main
+        className="max-w-2xl mx-auto px-4 pt-6 space-y-8 relative z-10"
+        style={{
+          paddingBottom: 'calc(24px + var(--vitrin-selection-bar-height, 0px) + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {restaurant.categories.map((category) => {
           const items = filteredItems.filter((i) => i.categoryId === category.id);
           if (items.length === 0) return null;
@@ -361,17 +378,19 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
               key={category.id}
               id={`modern-cat-${category.id}`}
               dataCategoryId={category.id}
+              data-category-id={category.id}
+              data-category-section-id={category.id}
               className="space-y-4 scroll-mt-20"
             >
               {/* Category Functional Header: Static, never hidden */}
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800/80" dir="rtl">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-                  <h3 className="font-black text-base sm:text-lg text-white">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)] shrink-0" />
+                  <h3 className="font-bold text-base sm:text-lg text-white text-right" dir="rtl">
                     {category.name}
                   </h3>
                 </div>
-                <span className="text-xs text-orange-400/90 font-bold bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-full">
+                <span className="text-xs text-orange-400/90 font-medium bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-full whitespace-nowrap">
                   {toPersianDigits(items.length)} خوراک
                 </span>
               </div>

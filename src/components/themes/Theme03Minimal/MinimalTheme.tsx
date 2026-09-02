@@ -62,6 +62,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   const [showSearch, setShowSearch] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const isNavigatingRef = useRef<boolean>(false);
+  const navigatingTimerRef = useRef<number | null>(null);
 
   // Category Intersection Observer
   useEffect(() => {
@@ -70,22 +72,24 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
     const container = getScrollContainer();
     const observer = new IntersectionObserver(
       (entries) => {
+        if (isNavigatingRef.current) return;
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const catId = entry.target.getAttribute('data-category-id');
+            const catId = entry.target.getAttribute('data-category-id') || entry.target.getAttribute('data-category-section-id');
             if (catId) setActiveCategory(catId);
           }
         });
       },
       {
         root: container === window ? null : (container as HTMLElement),
-        rootMargin: '-80px 0px -70% 0px',
+        rootMargin: '-75px 0px -60% 0px',
         threshold: 0.1,
       }
     );
 
+    const rootTarget = container instanceof HTMLElement ? container : document;
     restaurant.categories.forEach((cat) => {
-      const el = document.getElementById(`minimal-cat-${cat.id}`);
+      const el = rootTarget.querySelector<HTMLElement>(`[data-category-id="${cat.id}"], [data-category-section-id="${cat.id}"], #minimal-cat-${cat.id}`);
       if (el) observer.observe(el);
     });
 
@@ -94,7 +98,12 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
 
   const handleCategoryClick = (catId: string) => {
     setActiveCategory(catId);
-    scrollToElement(`minimal-cat-${catId}`, 75);
+    isNavigatingRef.current = true;
+    if (navigatingTimerRef.current) clearTimeout(navigatingTimerRef.current);
+    navigatingTimerRef.current = window.setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 900);
+    scrollToElement(catId, 76);
   };
 
   const filteredItems = restaurant.items.filter((item) => {
@@ -274,7 +283,10 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 2. STICKY CATEGORY NAVIGATOR & SEARCH                              */}
       {/* ------------------------------------------------------------------ */}
-      <div className="sticky top-0 z-30 bg-[#0d1317]/95 backdrop-blur-md border-y border-neutral-800 shadow-md">
+      <div
+        data-sticky-nav="true"
+        className="sticky top-0 z-30 bg-[#0d1317]/95 backdrop-blur-md border-y border-neutral-800 shadow-md"
+      >
         <div className="max-w-xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
           <button
             onClick={() => setIsCategorySheetOpen(true)}
@@ -334,7 +346,12 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 3. MENU STREAM CONTENT (Architectural Minimalist Reading)          */}
       {/* ------------------------------------------------------------------ */}
-      <main className="max-w-xl mx-auto px-4 pt-6 space-y-10 pb-28 relative z-10">
+      <main
+        className="max-w-xl mx-auto px-4 pt-6 space-y-8 relative z-10"
+        style={{
+          paddingBottom: 'calc(24px + var(--vitrin-selection-bar-height, 0px) + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {restaurant.categories.map((category) => {
           const items = filteredItems.filter((i) => i.categoryId === category.id);
           if (items.length === 0) return null;
@@ -344,17 +361,19 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
               key={category.id}
               id={`minimal-cat-${category.id}`}
               dataCategoryId={category.id}
+              data-category-id={category.id}
+              data-category-section-id={category.id}
               className="space-y-3 scroll-mt-20"
             >
               {/* Architectural Category Header: Static, never hidden */}
-              <div className="flex items-baseline justify-between border-b border-neutral-800/80 pb-2">
+              <div className="flex items-center justify-between border-b border-neutral-800/80 pb-2" dir="rtl">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-                  <h3 className="font-bold text-base text-white tracking-tight">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
+                  <h3 className="font-bold text-base text-white tracking-tight text-right" dir="rtl">
                     {category.name}
                   </h3>
                 </div>
-                <span className="text-[11px] text-teal-400/80 font-medium">
+                <span className="text-[11px] text-teal-400/80 font-medium whitespace-nowrap">
                   {toPersianDigits(items.length)} عنوان
                 </span>
               </div>

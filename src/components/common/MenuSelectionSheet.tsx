@@ -139,7 +139,8 @@ const MenuSelectionSheetContent: React.FC<MenuSelectionSheetContentProps> = ({
             selectedItems.map(({ item, quantity, lineTotal }) => (
               <div
                 key={item.id}
-                className="p-3 rounded-2xl bg-neutral-950/80 border border-neutral-800/90 grid grid-cols-[56px_minmax(0,1fr)_auto] gap-3 items-center"
+                className="p-3 rounded-2xl bg-neutral-950/80 border border-neutral-800/90 flex items-center gap-3.5"
+                dir="rtl"
               >
                 {/* Zone 1: Thumbnail Image with SafeImage Fallback */}
                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 shrink-0">
@@ -151,44 +152,53 @@ const MenuSelectionSheetContent: React.FC<MenuSelectionSheetContentProps> = ({
                   />
                 </div>
 
-                {/* Zone 2: Product Info (Strict Single-Line Title & Line Price) */}
-                <div className="min-w-0 flex flex-col justify-center space-y-1">
-                  <h4 className="text-xs sm:text-sm font-semibold text-white truncate leading-tight">
+                {/* Zone 2: Product Info (Max horizontal width, single-line title, clean line price) */}
+                <div className="min-w-0 flex-1 flex flex-col justify-center space-y-1 text-right">
+                  <h4 className="text-xs sm:text-sm font-semibold text-white truncate leading-tight text-right" dir="rtl">
                     {item.name}
                   </h4>
-                  <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 whitespace-nowrap text-right">
                     <span className="font-medium text-white/90">{formatToman(lineTotal)}</span>
-                    <span className="text-neutral-500">·</span>
-                    <span className="text-neutral-400 font-light">{formatToman(item.price)}</span>
+                    {quantity > 1 && (
+                      <span className="text-[10px] text-neutral-500 font-light">
+                        ({formatToman(item.price)} فی)
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Zone 3: Quantity Stepper (Compact & Accessible) */}
-                <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-700/60 rounded-xl p-0.5 shrink-0">
-                  <button
-                    onClick={() => decreaseItem(item.id)}
-                    className="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 flex items-center justify-center active:scale-95 transition-all cursor-pointer shrink-0"
-                    aria-label="کاهش تعداد"
-                  >
-                    {quantity === 1 ? (
-                      <Trash2 className="w-3 h-3 text-rose-400" />
-                    ) : (
-                      <Minus className="w-3 h-3" />
-                    )}
-                  </button>
-
-                  <span className="w-5 text-center text-xs font-bold text-white">
+                {/* Zone 3: Vertical Quantity Control (Amount to the RIGHT of vertical +/- buttons in RTL) */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Amount Number (Renders on the Right side in RTL) */}
+                  <span className="w-6 text-center text-xs sm:text-sm font-bold text-white select-none">
                     {toPersianDigits(quantity)}
                   </span>
 
-                  <button
-                    onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg text-neutral-950 flex items-center justify-center active:scale-95 transition-all font-bold cursor-pointer shrink-0"
-                    style={{ backgroundColor: accentColor }}
-                    aria-label="افزایش تعداد"
-                  >
-                    <Plus className="w-3 h-3 text-neutral-950" />
-                  </button>
+                  {/* Vertical Buttons Stack (Plus on top, Minus/Trash on bottom) */}
+                  <div className="flex flex-col gap-1 shrink-0">
+                    {/* Plus Button */}
+                    <button
+                      onClick={() => addItem(item.id)}
+                      className="w-7 h-7 rounded-lg text-neutral-950 flex items-center justify-center active:scale-95 transition-all font-bold cursor-pointer shadow-sm"
+                      style={{ backgroundColor: accentColor }}
+                      aria-label="افزایش تعداد"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-neutral-950 stroke-[2.5]" />
+                    </button>
+
+                    {/* Minus or Trash Button */}
+                    <button
+                      onClick={() => decreaseItem(item.id)}
+                      className="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-neutral-700/50"
+                      aria-label={quantity === 1 ? 'حذف آیتم' : 'کاهش تعداد'}
+                    >
+                      {quantity === 1 ? (
+                        <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                      ) : (
+                        <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

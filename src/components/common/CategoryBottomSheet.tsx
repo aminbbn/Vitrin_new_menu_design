@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, Check } from 'lucide-react';
 import { MenuCategory, MenuItem } from '../../types/menu';
@@ -25,15 +25,33 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
   onSelectCategory,
   accentColor = '#d4af37',
 }) => {
+  const pendingCategoryRef = useRef<string | null>(null);
+
+  const handleSelect = (categoryId: string) => {
+    pendingCategoryRef.current = categoryId;
+    onClose();
+  };
+
+  const handleExitComplete = () => {
+    if (pendingCategoryRef.current) {
+      const catId = pendingCategoryRef.current;
+      pendingCategoryRef.current = null;
+      // Wait for the next microtask/frame after overlay is unmounted and scroll-lock is fully released
+      requestAnimationFrame(() => {
+        onSelectCategory(catId);
+      });
+    }
+  };
+
   return (
     <OverlayPortal>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" onExitComplete={handleExitComplete}>
         {isOpen && (
           <CategoryBottomSheetContent
             categories={categories}
             items={items}
             activeCategoryId={activeCategoryId}
-            onSelectCategory={onSelectCategory}
+            onSelectCategory={handleSelect}
             onClose={onClose}
             accentColor={accentColor}
           />
@@ -137,10 +155,7 @@ const CategoryBottomSheetContent: React.FC<CategoryBottomSheetContentProps> = ({
               <motion.button
                 key={category.id}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  onSelectCategory(category.id);
-                  onClose();
-                }}
+                onClick={() => onSelectCategory(category.id)}
                 id={`cat-sheet-item-${category.id}`}
                 className={`p-3.5 rounded-2xl text-right transition-all flex flex-col justify-between border cursor-pointer ${
                   isActive

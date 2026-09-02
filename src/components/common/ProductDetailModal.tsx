@@ -312,16 +312,17 @@ const ProductDetailOverlayContent: React.FC<ProductDetailOverlayContentProps> = 
               </div>
             </div>
           )}
+        </div>
 
-          {/* Return button */}
-          <div className="pt-2 pb-1">
-            <button
-              onClick={onClose}
-              className="w-full min-h-[44px] py-2.5 px-4 rounded-xl font-medium text-xs text-center transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-200 active:scale-[0.99] cursor-pointer whitespace-nowrap flex items-center justify-center"
-            >
-              بستن و بازگشت به منو
-            </button>
-          </div>
+        {/* Bottom Action Footer: flex-shrink-0, strictly outside overflow-y-auto, anchored at physical bottom */}
+        <div className="p-3 sm:p-4 bg-[#11161b] border-t border-neutral-800/80 flex-shrink-0">
+          <button
+            onClick={onClose}
+            id="product-detail-return-btn"
+            className="w-full min-h-[44px] py-2.5 px-4 rounded-xl font-medium text-xs text-center transition-colors bg-neutral-800 hover:bg-neutral-700 text-neutral-200 active:scale-[0.99] cursor-pointer whitespace-nowrap flex items-center justify-center shadow-sm"
+          >
+            بستن و بازگشت به منو
+          </button>
         </div>
       </motion.div>
     </div>

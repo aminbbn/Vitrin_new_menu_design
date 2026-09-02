@@ -120,21 +120,58 @@ export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
   );
 
   const scrollToElement = useCallback(
-    (elementId: string, offset = 80) => {
-      const target = document.getElementById(elementId);
+    (targetIdOrSelector: string, offset = 76) => {
+      const container = getScrollContainer();
+      let target: HTMLElement | null = null;
+
+      // Clean selector escaping
+      const safeId = targetIdOrSelector.replace(/["\\]/g, '\\$&');
+
+      if (container && container !== window && container instanceof HTMLElement) {
+        // Scoped query inside active container
+        target =
+          container.querySelector<HTMLElement>(
+            `[data-category-id="${safeId}"], [data-category-section-id="${safeId}"], [data-scroll-target="${safeId}"], #${CSS.escape(targetIdOrSelector)}`
+          ) ||
+          container.querySelector<HTMLElement>(
+            `#cat-section-${CSS.escape(targetIdOrSelector)}, #modern-cat-${CSS.escape(targetIdOrSelector)}, #minimal-cat-${CSS.escape(targetIdOrSelector)}`
+          );
+      } else {
+        // Window / document mode lookup
+        target =
+          document.querySelector<HTMLElement>(
+            `[data-category-id="${safeId}"], [data-category-section-id="${safeId}"], [data-scroll-target="${safeId}"], #${CSS.escape(targetIdOrSelector)}`
+          ) ||
+          document.querySelector<HTMLElement>(
+            `#cat-section-${CSS.escape(targetIdOrSelector)}, #modern-cat-${CSS.escape(targetIdOrSelector)}, #minimal-cat-${CSS.escape(targetIdOrSelector)}`
+          ) ||
+          document.getElementById(targetIdOrSelector);
+      }
+
       if (!target) return;
 
-      const container = getScrollContainer();
+      // Check if sticky navigation bar is present in container to calculate precise offset
+      let effectiveOffset = offset;
+      const stickyNav = (container instanceof HTMLElement ? container : document).querySelector<HTMLElement>(
+        '[data-sticky-nav="true"], .sticky'
+      );
+      if (stickyNav) {
+        const navHeight = stickyNav.offsetHeight;
+        if (navHeight > 0) {
+          effectiveOffset = navHeight + 12; // sticky nav height + 12px breathing gap
+        }
+      }
+
       if (!container || container === window) {
         const rect = target.getBoundingClientRect();
-        const top = rect.top + window.scrollY - offset;
+        const top = rect.top + (window.scrollY || document.documentElement.scrollTop || 0) - effectiveOffset;
         window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
       } else {
         const containerEl = container as HTMLElement;
         const containerRect = containerEl.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
         const currentScroll = containerEl.scrollTop;
-        const relativeTop = targetRect.top - containerRect.top + currentScroll - offset;
+        const relativeTop = targetRect.top - containerRect.top + currentScroll - effectiveOffset;
         containerEl.scrollTo({ top: Math.max(0, relativeTop), behavior: 'smooth' });
       }
     },
@@ -200,9 +237,6 @@ export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
         const el = container as HTMLElement;
         el.style.overflow = '';
         el.style.touchAction = '';
-        if (savedScrollPosRef.current > 0) {
-          el.scrollTop = savedScrollPosRef.current;
-        }
       }
     }
   }, [activeOverlays.size, getScrollContainer]);
@@ -242,10 +276,13 @@ export const useMenuViewport = () => {
       scrollToTop: async (smooth = true) => {
         if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
       },
-      scrollToElement: (id: string, offset = 80) => {
-        const target = document.getElementById(id);
-        if (target) {
-          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+      scrollToElement: (id: string, offset = 76) => {
+        const target =
+          document.querySelector<HTMLElement>(
+            `[data-category-id="${id}"], [data-category-section-id="${id}"], #${CSS.escape(id)}`
+          ) || document.getElementById(id);
+        if (target && typeof window !== 'undefined') {
+          const top = target.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop || 0) - offset;
           window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
         }
       },

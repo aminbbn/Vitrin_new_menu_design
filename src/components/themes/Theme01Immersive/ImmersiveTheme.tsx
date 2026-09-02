@@ -62,15 +62,18 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
   const [showSearch, setShowSearch] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const isNavigatingRef = useRef<boolean>(false);
+  const navigatingTimerRef = useRef<number | null>(null);
 
   // Category Intersection Observer for scroll tracking
   useEffect(() => {
     if (!isMenuMode) return;
 
     const observerCallback: IntersectionObserverCallback = (entries) => {
+      if (isNavigatingRef.current) return;
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          const categoryId = entry.target.getAttribute('data-category-id');
+          const categoryId = entry.target.getAttribute('data-category-id') || entry.target.getAttribute('data-category-section-id');
           if (categoryId) {
             setActiveCategory(categoryId);
           }
@@ -81,12 +84,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
     const container = getScrollContainer();
     const observer = new IntersectionObserver(observerCallback, {
       root: container === window ? null : (container as HTMLElement),
-      rootMargin: '-80px 0px -60% 0px',
+      rootMargin: '-75px 0px -60% 0px',
       threshold: 0.1,
     });
 
+    const rootTarget = container instanceof HTMLElement ? container : document;
     restaurant.categories.forEach((cat) => {
-      const el = document.getElementById(`cat-section-${cat.id}`);
+      const el = rootTarget.querySelector<HTMLElement>(`[data-category-id="${cat.id}"], [data-category-section-id="${cat.id}"], #cat-section-${cat.id}`);
       if (el) observer.observe(el);
     });
 
@@ -95,7 +99,12 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
 
   const handleCategoryClick = (catId: string) => {
     setActiveCategory(catId);
-    scrollToElement(`cat-section-${catId}`, 75);
+    isNavigatingRef.current = true;
+    if (navigatingTimerRef.current) clearTimeout(navigatingTimerRef.current);
+    navigatingTimerRef.current = window.setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 900);
+    scrollToElement(catId, 76);
   };
 
   const filteredItems = restaurant.items.filter((item) => {
@@ -288,7 +297,10 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 2. STICKY CATEGORY NAVIGATOR & SEARCH (Directly below short hero)  */}
       {/* ------------------------------------------------------------------ */}
-      <div className="sticky top-0 z-30 bg-[#090d12]/95 backdrop-blur-xl border-y border-neutral-800/80 shadow-xl transition-all">
+      <div
+        data-sticky-nav="true"
+        className="sticky top-0 z-30 bg-[#090d12]/95 backdrop-blur-xl border-y border-neutral-800/80 shadow-xl transition-all"
+      >
         <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
           {/* Compact Category Trigger */}
           <button
@@ -350,7 +362,12 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 3. MENU CONTENT STREAM (Revealed from underneath in document flow) */}
       {/* ------------------------------------------------------------------ */}
-      <main className="relative z-10 max-w-2xl mx-auto w-full px-4 pt-6 space-y-10 pb-28">
+      <main
+        className="relative z-10 max-w-2xl mx-auto w-full px-4 pt-6 space-y-8"
+        style={{
+          paddingBottom: 'calc(24px + var(--vitrin-selection-bar-height, 0px) + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         {/* If search query is active */}
         {searchQuery ? (
           <EntranceSection className="space-y-4">
@@ -380,17 +397,22 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
             {/* Featured / Signature Section */}
             {featuredItems.length > 0 && (
               <EntranceSection className="space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      style={{ backgroundColor: config.accentColor }}
-                      className="w-2 h-5 rounded-full inline-block"
-                    />
-                    <h2 className="text-lg font-bold text-white tracking-tight">
-                      پیشنهاد سرآشپز و برگزیده‌ها
+                <div className="flex items-center justify-between border-b border-neutral-800/80 pb-2.5" dir="rtl">
+                  <div className="text-right">
+                    <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2" dir="rtl">
+                      <span
+                        style={{ backgroundColor: config.accentColor }}
+                        className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                      />
+                      <span>پیشنهاد سرآشپز و برگزیده‌ها</span>
                     </h2>
+                    <p className="text-xs text-neutral-400 font-sans tracking-wide mt-0.5 text-right" dir="ltr" style={{ textAlign: 'right' }}>
+                      Chef’s Signatures
+                    </p>
                   </div>
-                  <span className="text-xs text-amber-400 font-medium">امضای بونو</span>
+                  <span className="text-xs text-amber-400 font-medium px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 whitespace-nowrap">
+                    امضای بونو
+                  </span>
                 </div>
 
                 {/* Featured Items Grid: 1 per row on mobile, 2 on wide viewports */}
@@ -420,19 +442,25 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                   key={category.id}
                   id={`cat-section-${category.id}`}
                   dataCategoryId={category.id}
+                  data-category-id={category.id}
+                  data-category-section-id={category.id}
                   className="space-y-4 pt-4 scroll-mt-20"
                 >
                   {/* Section Header: Static, directly visible, NOT wrapped in EntranceItem */}
-                  <div className="border-b border-neutral-800/80 pb-2.5 flex items-end justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  <div className="border-b border-neutral-800/80 pb-2.5 flex items-end justify-between" dir="rtl">
+                    <div className="text-right">
+                      <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2" dir="rtl">
+                        <span
+                          style={{ backgroundColor: config.accentColor }}
+                          className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                        />
                         <span>{category.name}</span>
-                        <span className="text-xs text-neutral-400 font-light">
+                        <span className="text-xs text-neutral-400 font-normal">
                           ({toPersianDigits(categoryItems.length)})
                         </span>
                       </h3>
                       {category.nameEn && (
-                        <p className="text-[11px] text-neutral-400 font-sans tracking-wider" dir="ltr">
+                        <p className="text-xs text-neutral-400 font-sans tracking-wide mt-0.5 text-right" dir="ltr" style={{ textAlign: 'right' }}>
                           {category.nameEn}
                         </p>
                       )}
@@ -458,13 +486,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         )}
 
         {/* Brand Footer */}
-        <EntranceSection as="footer" className="pt-10 pb-16 text-center space-y-3 border-t border-neutral-800/60 mt-12">
+        <EntranceSection as="footer" className="pt-8 pb-6 text-center space-y-2.5 border-t border-neutral-800/60 mt-8">
           <EntranceItem index={0} className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-amber-500/20 bg-black/40">
             <img src={restaurant.logo} alt={restaurant.name} className="w-full h-full object-cover rounded-lg" />
           </EntranceItem>
-          <EntranceItem index={1} as="h4" className="text-sm font-bold text-white">{restaurant.name}</EntranceItem>
-          <EntranceItem index={2} as="p" className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">{restaurant.tagline}</EntranceItem>
-          <EntranceItem index={3} className="text-[11px] text-neutral-400 pt-3">
+          <EntranceItem index={1} as="h4" className="text-sm font-bold text-white text-center">{restaurant.name}</EntranceItem>
+          <EntranceItem index={2} as="p" className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed text-center">{restaurant.tagline}</EntranceItem>
+          <EntranceItem index={3} className="text-[11px] text-neutral-400 pt-2 text-center">
             منوی دیجیتال طراحی شده با ویترین
           </EntranceItem>
         </EntranceSection>
