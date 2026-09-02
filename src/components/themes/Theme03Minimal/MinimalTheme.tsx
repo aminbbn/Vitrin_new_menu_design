@@ -1,34 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronDown,
-  Info,
-  RotateCcw,
+  ArrowRight,
+  Layers,
   Search,
-  ArrowUp,
+  X,
+  Sparkles,
+  Utensils,
   MapPin,
   Clock,
-  Layers,
-  Plus,
-  Minus,
-  Trash2,
+  Phone,
+  Info,
+  ChevronLeft,
 } from 'lucide-react';
-import { RestaurantData, MenuThemeConfig, MenuItem } from '../../../types/menu';
-import { formatToman, toPersianDigits } from '../../../utils/formatters';
-import { ProductDetailModal } from '../../common/ProductDetailModal';
+import { RestaurantData, MenuThemeConfig, MenuCategory, MenuItem } from '../../../types/menu';
+import { toPersianDigits } from '../../../utils/formatters';
+import { useMenuViewport } from '../../../context/MenuViewportContext';
+import { SafeImage } from '../../common/SafeImage';
+import { EntranceSection, EntranceItem } from '../../../motion';
+import { CategoryGalleryCard } from './CategoryGalleryCard';
+import { VisualProductItem } from './VisualProductItem';
+import { getCategoryDisplayImage } from './categoryImageUtils';
+import { ScrollToTopButton } from '../../common/ScrollToTopButton';
 import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
+import { ProductDetailModal } from '../../common/ProductDetailModal';
 import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
-import { ScrollToTopButton } from '../../common/ScrollToTopButton';
-import { AmbientBackground } from '../../common/AmbientBackground';
-import { useMenuSelection } from '../../../context/MenuSelectionContext';
-import { useMenuViewport } from '../../../context/MenuViewportContext';
-import { useHeroTransition } from '../../../hooks/useHeroTransition';
-import { EntranceSection, EntranceItem } from '../../../motion';
-import { HeroInfoPills } from '../../common/HeroInfoPills';
-import { SafeImage } from '../../common/SafeImage';
-
 
 interface MinimalThemeProps {
   restaurant: RestaurantData;
@@ -45,468 +43,560 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   onStateChange,
   isDashboardPreview = false,
 }) => {
-  const transitionDuration = (config.hero?.transitionDurationMs || 650) / 1000;
-  const { viewState, isMenuMode, enterMenu, returnToHero } = useHeroTransition({
-    initialState,
-    onStateChange,
-    transitionDurationMs: config.hero?.transitionDurationMs || 650,
-  });
+  const { scrollToTop } = useMenuViewport();
+  const accentColor = config.accentColor || '#38bdf8';
 
-  const { getScrollContainer, scrollToElement } = useMenuViewport();
+  // Navigation state: 'gallery' (visual category explorer landing) vs 'category' (image-led product feed)
+  const [viewState, setViewState] = useState<'gallery' | 'category'>(
+    initialState === 'menu' ? 'category' : 'gallery'
+  );
 
-  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+    restaurant.categories[0]?.id || ''
+  );
+
+  // Modal / Overlay states
+  const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>(restaurant.categories[0]?.id || '');
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+
+  // Search state within category view
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isNavigatingRef = useRef<boolean>(false);
-  const navigatingTimerRef = useRef<number | null>(null);
-
-  // Category Intersection Observer
+  // Sync external state changes
   useEffect(() => {
-    if (!isMenuMode) return;
+    if (initialState === 'menu' && viewState !== 'category') {
+      setViewState('category');
+    } else if (initialState === 'hero' && viewState !== 'gallery') {
+      setViewState('gallery');
+    }
+  }, [initialState]);
 
-    const container = getScrollContainer();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isNavigatingRef.current) return;
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const catId = entry.target.getAttribute('data-category-id') || entry.target.getAttribute('data-category-section-id');
-            if (catId) setActiveCategory(catId);
-          }
-        });
-      },
-      {
-        root: container === window ? null : (container as HTMLElement),
-        rootMargin: '-75px 0px -60% 0px',
-        threshold: 0.1,
-      }
-    );
-
-    const rootTarget = container instanceof HTMLElement ? container : document;
-    restaurant.categories.forEach((cat) => {
-      const el = rootTarget.querySelector<HTMLElement>(`[data-category-id="${cat.id}"], [data-category-section-id="${cat.id}"], #minimal-cat-${cat.id}`);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [isMenuMode, restaurant.categories, getScrollContainer]);
-
-  const handleCategoryClick = (catId: string) => {
-    setActiveCategory(catId);
-    isNavigatingRef.current = true;
-    if (navigatingTimerRef.current) clearTimeout(navigatingTimerRef.current);
-    navigatingTimerRef.current = window.setTimeout(() => {
-      isNavigatingRef.current = false;
-    }, 900);
-    scrollToElement(catId, 76);
+  const handleSelectCategory = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    setViewState('category');
+    setIsCategorySheetOpen(false);
+    setSearchQuery('');
+    setIsSearchOpen(false);
+    onStateChange?.('menu');
+    scrollToTop(false);
   };
 
-  const filteredItems = restaurant.items.filter((item) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      item.name.toLowerCase().includes(q) ||
-      (item.nameEn && item.nameEn.toLowerCase().includes(q)) ||
-      item.description.toLowerCase().includes(q)
-    );
-  });
+  const handleReturnToGallery = () => {
+    setViewState('gallery');
+    setSearchQuery('');
+    setIsSearchOpen(false);
+    onStateChange?.('hero');
+    scrollToTop(false);
+  };
 
-  const activeCategoryObj = restaurant.categories.find((c) => c.id === activeCategory);
+  const handleOpenProductDetail = (item: MenuItem) => {
+    setSelectedProduct(item);
+  };
+
+  const handleCloseProductDetail = () => {
+    setSelectedProduct(null);
+  };
+
+  const activeCategory: MenuCategory =
+    restaurant.categories.find((c) => c.id === selectedCategoryId) ||
+    restaurant.categories[0] || {
+      id: 'default',
+      name: 'منوی رستوران',
+    };
+
+  const categoryItems: MenuItem[] = useMemo(() => {
+    return restaurant.items.filter((item) => item.categoryId === activeCategory.id);
+  }, [restaurant.items, activeCategory.id]);
+
+  // Filter items if searching
+  const displayItems: MenuItem[] = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return categoryItems;
+    }
+    const query = searchQuery.trim().toLowerCase();
+    // Search within current category first, or fallback to all items matching query
+    const matchingInCategory = categoryItems.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query) ||
+        (item.nameEn && item.nameEn.toLowerCase().includes(query)) ||
+        (item.description && item.description.toLowerCase().includes(query))
+    );
+    if (matchingInCategory.length > 0) {
+      return matchingInCategory;
+    }
+    // If no matches in current category, search across all restaurant items
+    return restaurant.items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query) ||
+        (item.nameEn && item.nameEn.toLowerCase().includes(query)) ||
+        (item.description && item.description.toLowerCase().includes(query))
+    );
+  }, [categoryItems, restaurant.items, searchQuery]);
+
+  const isGlobalSearchResult =
+    searchQuery.trim().length > 0 &&
+    displayItems.length > 0 &&
+    displayItems.some((item) => item.categoryId !== activeCategory.id);
+
+  const activeCategoryHeaderImage = getCategoryDisplayImage(
+    activeCategory,
+    restaurant.items,
+    restaurant.heroImage
+  );
 
   return (
     <div
-      ref={containerRef}
+      id="vitrin-style-03-visual-explorer"
+      className="relative min-h-full w-full bg-[#0d0f12] text-neutral-100 flex flex-col selection:bg-white/20 selection:text-white"
       dir="rtl"
-      className="min-h-screen bg-[#0a0f12] text-neutral-200 font-sans relative selection:bg-teal-500/20"
-      style={{
-        backgroundColor: config.bgColor || '#0a0f12',
-        color: config.textColor,
-      }}
     >
-      {/* Ambient Animated Atmospheric Glow Layer */}
-      <AmbientBackground theme="minimal" accentColor={config.accentColor || '#2dd4bf'} />
-
-      {/* ------------------------------------------------------------------ */}
-      {/* 1. CONTINUOUS HERO CONTAINER (Moves upward like a curtain/shutter) */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.div
-        layout
-        initial={false}
-        animate={{
-          height: isMenuMode ? '230px' : 'var(--menu-viewport-height, 100dvh)',
-        }}
-        transition={{
-          duration: transitionDuration,
-          ease: [0.22, 1, 0.36, 1],
-        }}
-        className="relative z-10 w-full overflow-hidden flex flex-col justify-between"
-      >
-        {/* Ambient Glow / Background Layer */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img
-            src={restaurant.heroImage}
-            alt={restaurant.name}
-            className="w-full h-full object-cover object-center filter brightness-[0.7]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1317] via-[#0d1317]/60 to-black/50" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-        </div>
-
-        {/* Top Header Bar Area */}
-        <EntranceItem index={0} className="relative z-10 w-full px-4 sm:px-6 pt-4 max-w-xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-neutral-900 border border-teal-500/30 flex-shrink-0">
-              <img
-                src={restaurant.logo}
-                alt={restaurant.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div>
-              <h1 className="font-bold tracking-tight text-white text-base sm:text-lg whitespace-nowrap">
-                {restaurant.name}
-              </h1>
-              <p className="text-[11px] text-teal-400 font-medium whitespace-nowrap">
-                {restaurant.cuisine}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsInfoOpen(true)}
-              id="minimal-header-info-btn"
-              className="w-9 h-9 rounded-full bg-neutral-900 border border-neutral-700/80 flex items-center justify-center text-neutral-300 hover:text-white active:scale-95 transition-all cursor-pointer shadow shrink-0"
-              aria-label="اطلاعات رستوران"
-            >
-              <Info className="w-4 h-4 text-teal-300" />
-            </button>
-          </div>
-        </EntranceItem>
-
-        {/* Hero Architectural Layout (Independently Centered at 50% of Hero Viewport) */}
-        <AnimatePresence>
-          {!isMenuMode && (
-            <motion.div
-              key="minimal-hero-center-content"
-              initial={{ opacity: 1, y: 0 }}
-              exit={{
-                opacity: 0,
-                y: -40,
-                transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
-              }}
-              transition={{ duration: 0.45 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl px-5 z-10 flex flex-col items-center text-center space-y-3.5 pointer-events-auto"
-            >
-              <EntranceItem index={1} className="inline-block px-3 py-1 rounded-full bg-teal-950/60 border border-teal-800/40 text-teal-300 text-[11px] font-medium shadow-sm">
-                منوی اختصاصی رستوران و کافه
-              </EntranceItem>
-
-              <EntranceItem index={2} as="h2" className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-sm sm:max-w-md">
-                {config.hero.headline}
-              </EntranceItem>
-
-              <EntranceItem index={3} as="p" className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light max-w-xs sm:max-w-sm">
-                {config.hero.subheadline}
-              </EntranceItem>
-
-              {/* Interactive Expandable Information Pills */}
-              <EntranceItem index={4} className="w-full pt-1">
-                <HeroInfoPills
-                  workingHours={restaurant.workingHours}
-                  location={restaurant.neighborhood}
-                  themeId="minimal"
-                />
-              </EntranceItem>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Lower CTA Button Container (Independently Anchored Near Bottom Portion) */}
-        <AnimatePresence>
-          {!isMenuMode && (
-            <motion.div
-              key="minimal-hero-bottom-cta"
-              initial={{ opacity: 1, y: 0 }}
-              exit={{
-                opacity: 0,
-                y: 30,
-                transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-              }}
-              transition={{ duration: 0.45 }}
-              className="absolute bottom-6 sm:bottom-9 left-1/2 -translate-x-1/2 w-full max-w-xs px-4 z-10 flex flex-col items-center pointer-events-auto"
-            >
-              <EntranceItem index={5} className="w-full">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => enterMenu('cta')}
-                  id="minimal-enter-menu-btn"
-                  className="w-full min-h-[48px] py-3.5 px-6 rounded-xl bg-teal-400 hover:bg-teal-300 text-neutral-950 font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-teal-950/40 whitespace-nowrap"
-                >
-                  <span className="whitespace-nowrap">{config.hero.ctaText}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </motion.button>
-              </EntranceItem>
-
-              <EntranceItem index={6} className="text-neutral-400 text-[11px] font-light text-center mt-2.5 whitespace-nowrap">
-                جهت مرور خوراک‌ها و ثبت انتخاب دکمه را لمس یا به پایین اسکرول کنید
-              </EntranceItem>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Collapsed Short Hero Status Bar (Balanced Grid, Single Line Guaranteed) */}
-        {isMenuMode && (
+      <AnimatePresence mode="wait" initial={false}>
+        {viewState === 'gallery' ? (
+          /* ================================================================ */
+          /* 1. VISUAL CATEGORY EXPLORER (LANDING VIEW)                       */
+          /* ================================================================ */
           <motion.div
+            key="visual-gallery-landing"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="relative z-10 w-full px-4 sm:px-6 pb-3 max-w-xl mx-auto grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center text-xs text-neutral-300 border-t border-white/10 pt-2"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full flex-1 flex flex-col"
           >
-            <div className="flex items-center gap-2 font-medium min-w-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-              <span className="truncate whitespace-nowrap">پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
-            </div>
-            <div className="text-teal-300 font-medium shrink-0 whitespace-nowrap">
-              {toPersianDigits(restaurant.items.length)} آیتم
-            </div>
-          </motion.div>
-        )}
-      </motion.div>
+            {/* 1.1 Top Restaurant Hero (Target ~30-36% Viewport Height) */}
+            <header className="relative w-full h-[32vh] min-h-[220px] max-h-[340px] sm:h-[36vh] sm:max-h-[380px] overflow-hidden bg-neutral-950">
+              <SafeImage
+                src={restaurant.heroImage}
+                alt={restaurant.name}
+                className="w-full h-full object-cover object-center"
+                fallbackContainerClassName="w-full h-full bg-neutral-900"
+                fallbackIconClassName="w-12 h-12 text-neutral-600"
+                priority
+              />
 
-      {/* ------------------------------------------------------------------ */}
-      {/* 2. STICKY CATEGORY NAVIGATOR & SEARCH                              */}
-      {/* ------------------------------------------------------------------ */}
-      <div
-        data-sticky-nav="true"
-        className="sticky top-0 z-30 bg-[#0d1317]/95 backdrop-blur-md border-y border-neutral-800 shadow-md"
-      >
-        <div className="max-w-xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
-          <button
-            onClick={() => setIsCategorySheetOpen(true)}
-            id="minimal-all-cats-btn"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-neutral-800 text-teal-300 border border-neutral-700 active:scale-95 transition-all cursor-pointer"
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>دسته‌بندی: {activeCategoryObj?.name || 'همه دسته‌ها'}</span>
-            <ChevronDown className="w-3.5 h-3.5" />
-          </button>
+              {/* Natural Photography Treatment: Gentle Vignette & Bottom Wash */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f12] via-black/25 to-black/30 pointer-events-none" />
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
-                showSearch ? 'bg-teal-400 text-black' : 'bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white'
-              }`}
-              aria-label="جستجو در منو"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <AnimatePresence>
-          {showSearch && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="px-4 pb-3 max-w-xl mx-auto w-full"
-            >
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="جستجوی عنوان یا ترکیبات غذا..."
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
-                  autoFocus
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute left-3 top-2 text-xs text-neutral-400 hover:text-white"
-                  >
-                    پاک کردن
-                  </button>
-                )}
+              {/* Top Quick Actions (Info Trigger) */}
+              <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-20">
+                <button
+                  type="button"
+                  id="gallery-info-modal-btn"
+                  onClick={() => setIsInfoModalOpen(true)}
+                  className="w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/20 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg"
+                  aria-label="اطلاعات رستوران"
+                  title="اطلاعات و تماس"
+                >
+                  <Info className="w-4 h-4" />
+                </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </header>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* 3. MENU STREAM CONTENT (Architectural Minimalist Reading)          */}
-      {/* ------------------------------------------------------------------ */}
-      <main
-        className="max-w-xl mx-auto px-4 pt-6 space-y-8 relative z-10"
-        style={{
-          paddingBottom: 'calc(24px + var(--vitrin-selection-bar-height, 0px) + env(safe-area-inset-bottom, 0px))',
-        }}
-      >
-        {restaurant.categories.map((category) => {
-          const items = filteredItems.filter((i) => i.categoryId === category.id);
-          if (items.length === 0) return null;
-
-          return (
-            <EntranceSection
-              key={category.id}
-              id={`minimal-cat-${category.id}`}
-              dataCategoryId={category.id}
-              data-category-id={category.id}
-              data-category-section-id={category.id}
-              className="space-y-3 scroll-mt-20"
-            >
-              {/* Architectural Category Header: Static, never hidden */}
-              <div className="flex items-center justify-between border-b border-neutral-800/80 pb-2" dir="rtl">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
-                  <h3 className="font-bold text-base text-white tracking-tight text-right" dir="rtl">
-                    {category.name}
-                  </h3>
-                </div>
-                <span className="text-[11px] text-teal-400/80 font-medium whitespace-nowrap">
-                  {toPersianDigits(items.length)} عنوان
-                </span>
-              </div>
-
-              {/* Borderless Typographic Rows */}
-              <div className="divide-y divide-neutral-900/80">
-                {items.map((item, idx) => (
-                  <EntranceItem key={item.id} index={idx}>
-                    <MinimalItemRow
-                      item={item}
-                      onSelect={setSelectedItem}
-                      accentColor={config.accentColor || '#2dd4bf'}
+            {/* 1.2 Restaurant Identity Section */}
+            <EntranceSection className="w-full max-w-4xl mx-auto px-4 sm:px-6 -mt-10 sm:-mt-12 relative z-10 space-y-4">
+              <EntranceItem index={0}>
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3.5 sm:gap-5 pb-2">
+                  {/* Logo Container */}
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl p-2 bg-[#16181d] border border-white/15 shadow-xl shrink-0 flex items-center justify-center overflow-hidden">
+                    <SafeImage
+                      src={restaurant.logo}
+                      alt={restaurant.name}
+                      className="max-h-full max-w-full object-contain"
+                      fallbackContainerClassName="w-full h-full flex items-center justify-center bg-neutral-800"
+                      fallbackIconClassName="w-6 h-6 text-neutral-500"
                     />
-                  </EntranceItem>
-                ))}
+                  </div>
+
+                  {/* Name, Tagline & Cuisine */}
+                  <div className="min-w-0 flex-1 space-y-1 text-right">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="font-bold text-xl sm:text-2xl md:text-3xl text-white tracking-tight leading-tight">
+                        {restaurant.name}
+                      </h1>
+                      {restaurant.cuisine && (
+                        <span className="inline-flex items-center text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-white/10 text-neutral-300 border border-white/10">
+                          {restaurant.cuisine}
+                        </span>
+                      )}
+                    </div>
+
+                    {restaurant.tagline && (
+                      <p className="text-xs sm:text-sm text-neutral-400 font-light leading-relaxed max-w-xl line-clamp-2">
+                        {restaurant.tagline}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </EntranceItem>
+
+              {/* 1.3 Photographic Category Gallery */}
+              <div className="pt-2 pb-16 space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-between pb-1 text-right">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: accentColor }}
+                    />
+                    <h2 className="font-bold text-sm sm:text-base text-neutral-200 tracking-tight">
+                      دسته‌بندی‌های منو
+                    </h2>
+                  </div>
+
+                  <span className="text-xs text-neutral-500 font-normal">
+                    {toPersianDigits(restaurant.categories.length)} دسته‌بندی
+                  </span>
+                </div>
+
+                {/* Responsive Grid: 1 col mobile, 2 cols tablet, 3 cols desktop */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                  {restaurant.categories.map((category, index) => (
+                    <EntranceItem key={category.id} index={index + 1}>
+                      <CategoryGalleryCard
+                        category={category}
+                        items={restaurant.items}
+                        restaurantHeroImage={restaurant.heroImage}
+                        accentColor={accentColor}
+                        onSelect={handleSelectCategory}
+                        index={index}
+                      />
+                    </EntranceItem>
+                  ))}
+                </div>
+
+                {/* Footer Brand Note */}
+                <div className="pt-10 pb-6 text-center space-y-2 border-t border-white/5">
+                  <p className="text-xs text-neutral-400 font-light">
+                    {restaurant.name} — کاوشگر تصویری منو
+                  </p>
+                  {restaurant.address && (
+                    <p className="text-[11px] text-neutral-500 max-w-md mx-auto truncate">
+                      {restaurant.address}
+                    </p>
+                  )}
+                </div>
               </div>
             </EntranceSection>
-          );
-        })}
-      </main>
+          </motion.div>
+        ) : (
+          /* ================================================================ */
+          /* 2. IMAGE-LED CATEGORY PAGE (PROMPT 2 PRODUCT BROWSING)           */
+          /* ================================================================ */
+          <motion.div
+            key={`category-page-${activeCategory.id}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full flex-1 flex flex-col"
+          >
+            {/* 2.1 Top Sticky Navigation Bar */}
+            <header className="sticky top-0 z-30 w-full bg-[#0d0f12]/95 backdrop-blur-md border-b border-white/10 px-4 py-3">
+              <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+                {/* Right (RTL): Restaurant Identity & Category Indicator */}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-white/10 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                    <SafeImage
+                      src={restaurant.logo}
+                      alt={restaurant.name}
+                      className="max-h-full max-w-full object-contain"
+                      fallbackContainerClassName="w-full h-full bg-neutral-800"
+                      fallbackIconClassName="w-3.5 h-3.5 text-neutral-500"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-bold text-xs sm:text-sm text-white truncate">
+                      {restaurant.name}
+                    </h2>
+                    <p className="text-[10px] text-neutral-400 truncate">
+                      {activeCategory.name}
+                    </p>
+                  </div>
+                </div>
 
-      {/* Floating Bottom-Docked Scroll To Top Button (Accounting for Selection Bar) */}
-      <ScrollToTopButton accentColor={config.accentColor || '#2dd4bf'} themeId="minimal" />
+                {/* Left (RTL): Quick Actions (Search, Category Sheet, Return to Gallery) */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Search Toggle */}
+                  <button
+                    type="button"
+                    id="toggle-search-btn"
+                    onClick={() => setIsSearchOpen((prev) => !prev)}
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                      isSearchOpen || searchQuery
+                        ? 'bg-white/20 text-white border border-white/30'
+                        : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10'
+                    }`}
+                    aria-label="جستجو در منو"
+                    title="جستجو"
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
 
-      {/* Selection Components */}
-      <MenuSelectionBar accentColor={config.accentColor || '#2dd4bf'} themeId="minimal" />
-      <MenuSelectionSheet accentColor={config.accentColor || '#2dd4bf'} />
+                  {/* Category Switcher Bottom Sheet Trigger */}
+                  <button
+                    type="button"
+                    id="open-categories-sheet-btn"
+                    onClick={() => setIsCategorySheetOpen(true)}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 text-xs font-medium text-neutral-200 active:scale-95 transition-all cursor-pointer"
+                    aria-label="تغییر دسته‌بندی"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-neutral-300" />
+                    <span className="hidden sm:inline">دسته‌ها</span>
+                  </button>
 
-      {/* Category Bottom Sheet */}
+                  {/* Return to Gallery Button */}
+                  <button
+                    type="button"
+                    id="return-to-visual-gallery-btn"
+                    onClick={handleReturnToGallery}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 border border-white/15 text-xs font-semibold text-white shadow-xs active:scale-95 transition-all cursor-pointer"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5 text-neutral-300" />
+                    <span>گالری</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Expandable Search Input Bar */}
+              <AnimatePresence>
+                {(isSearchOpen || searchQuery) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="max-w-4xl mx-auto pt-2.5 overflow-hidden"
+                  >
+                    <div className="relative flex items-center">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder={`جستجو در خوراک‌های ${restaurant.name}...`}
+                        className="w-full bg-[#16191f] border border-white/15 rounded-xl px-9 py-2 text-xs text-white placeholder-neutral-500 focus:outline-hidden focus:border-white/30 transition-all text-right"
+                        dir="rtl"
+                        autoFocus={isSearchOpen && !searchQuery}
+                      />
+                      <Search className="w-4 h-4 text-neutral-500 absolute right-3 pointer-events-none" />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-neutral-300 flex items-center justify-center absolute left-3 cursor-pointer"
+                          aria-label="پاک کردن جستجو"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </header>
+
+            {/* 2.2 Category Visual Header (Compact ~180-220px Height) */}
+            <div className="relative w-full h-44 sm:h-52 md:h-60 overflow-hidden bg-neutral-950">
+              <SafeImage
+                src={activeCategoryHeaderImage}
+                alt={activeCategory.name}
+                className="w-full h-full object-cover object-center"
+                fallbackContainerClassName="w-full h-full bg-neutral-900"
+                fallbackIconClassName="w-10 h-10 text-neutral-600"
+                priority
+              />
+
+              {/* Natural Scrim Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0d0f12] via-black/40 to-transparent pointer-events-none" />
+
+              {/* Category Title & Info Overlay */}
+              <div className="absolute inset-x-0 bottom-0 max-w-4xl mx-auto p-4 sm:p-6 flex items-end justify-between gap-3 z-10">
+                <div className="space-y-1 text-right">
+                  <h1 className="font-bold text-xl sm:text-2xl md:text-3xl text-white tracking-tight drop-shadow-sm">
+                    {activeCategory.name}
+                  </h1>
+
+                  {activeCategory.description ? (
+                    <p className="text-xs sm:text-sm text-neutral-300/90 font-light max-w-lg leading-relaxed">
+                      {activeCategory.description}
+                    </p>
+                  ) : activeCategory.nameEn ? (
+                    <p className="text-xs text-neutral-300/80 font-normal tracking-wide">
+                      {activeCategory.nameEn}
+                    </p>
+                  ) : null}
+                </div>
+
+                <span className="shrink-0 px-3 py-1 rounded-full text-xs font-medium bg-black/60 text-white/90 backdrop-blur-md border border-white/15">
+                  {toPersianDigits(categoryItems.length)} خوراک
+                </span>
+              </div>
+            </div>
+
+            {/* 2.3 Image-Led Product Feed (Main Content) */}
+            <main
+              className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pt-6 pb-24 space-y-6"
+              style={{
+                paddingBottom: 'calc(80px + var(--vitrin-selection-bar-height, 0px) + env(safe-area-inset-bottom, 0px))',
+              }}
+            >
+              {/* Search Result Subtitle (If searching) */}
+              {searchQuery.trim() && (
+                <div className="flex items-center justify-between pb-2 border-b border-white/10 text-xs">
+                  <span className="text-neutral-400">
+                    نتایج جستجو برای «<strong className="text-white">{searchQuery}</strong>»
+                    {isGlobalSearchResult && ' (در تمام منو)'}
+                  </span>
+                  <span className="text-neutral-500">
+                    {toPersianDigits(displayItems.length)} مورد
+                  </span>
+                </div>
+              )}
+
+              {/* Product Feed Grid */}
+              {displayItems.length === 0 ? (
+                <div className="py-16 text-center space-y-3 bg-[#14171c] rounded-2xl border border-white/10 p-6">
+                  <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center bg-white/5 text-neutral-400">
+                    <Utensils className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-semibold text-sm sm:text-base text-white">
+                    موردی یافت نشد
+                  </h3>
+                  <p className="text-xs text-neutral-400 max-w-xs mx-auto">
+                    {searchQuery
+                      ? 'خوراکی با این عنوان در این بخش یافت نشد.'
+                      : 'در حال حاضر خوراکی در این دسته‌بندی تعریف نشده است.'}
+                  </p>
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white border border-white/15 cursor-pointer"
+                    >
+                      پاک کردن جستجو
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <EntranceSection className="w-full">
+                  {/* Editorial Layout: 1 col on mobile, 2 cols on tablet/desktop */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    {displayItems.map((item, index) => (
+                      <EntranceItem key={item.id} index={index}>
+                        <VisualProductItem
+                          item={item}
+                          accentColor={accentColor}
+                          onSelect={handleOpenProductDetail}
+                          index={index}
+                        />
+                      </EntranceItem>
+                    ))}
+                  </div>
+                </EntranceSection>
+              )}
+
+              {/* Category Quick Navigation & Footer Navigation */}
+              <div className="pt-8 pb-4 space-y-6">
+                {/* Horizontal Category Switcher Pills */}
+                <div className="space-y-2 text-right">
+                  <span className="text-xs text-neutral-400 font-light">
+                    کاوش سایر بخش‌ها:
+                  </span>
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    {restaurant.categories.map((cat) => {
+                      const isCurrent = cat.id === activeCategory.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => handleSelectCategory(cat.id)}
+                          className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+                            isCurrent
+                              ? 'bg-white/20 text-white border-white/30 shadow-xs'
+                              : 'bg-[#16191f] text-neutral-300 hover:text-white border-white/10 hover:bg-white/10'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Return to Full Category Gallery CTA */}
+                <div className="pt-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={handleReturnToGallery}
+                    className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 border border-white/15 text-xs sm:text-sm font-semibold text-white shadow-md active:scale-98 transition-all cursor-pointer"
+                  >
+                    <Layers className="w-4 h-4 text-neutral-300" />
+                    <span>مشاهده تمام دسته‌بندی‌ها در گالری</span>
+                  </button>
+                </div>
+
+                {/* Footer Brand & Restaurant Info */}
+                <div className="pt-8 text-center space-y-2 border-t border-white/5">
+                  <p className="text-xs text-neutral-400 font-light">
+                    {restaurant.name} — منوی دیجیتال
+                  </p>
+                  {restaurant.address && (
+                    <p className="text-[11px] text-neutral-500 max-w-md mx-auto truncate">
+                      {restaurant.address}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </main>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Menu Selection Bar (Style 3) */}
+      <MenuSelectionBar
+        accentColor={accentColor}
+        themeId="minimal"
+      />
+
+      {/* Menu Selection Bottom Sheet (Style 3) */}
+      <MenuSelectionSheet
+        accentColor={accentColor}
+        themeId="minimal"
+      />
+
+      {/* Floating Scroll to Top Button */}
+      <ScrollToTopButton
+        accentColor={accentColor}
+        themeId="minimal"
+      />
+
+      {/* Product Detail Modal / Sheet */}
+      <ProductDetailModal
+        item={selectedProduct}
+        onClose={handleCloseProductDetail}
+        accentColor={accentColor}
+        themeId="minimal"
+      />
+
+      {/* Category Bottom Sheet (For fast category jumping) */}
       <CategoryBottomSheet
         isOpen={isCategorySheetOpen}
         onClose={() => setIsCategorySheetOpen(false)}
         categories={restaurant.categories}
         items={restaurant.items}
-        activeCategoryId={activeCategory}
-        onSelectCategory={handleCategoryClick}
-        accentColor={config.accentColor || '#2dd4bf'}
+        activeCategoryId={selectedCategoryId}
+        onSelectCategory={handleSelectCategory}
+        accentColor={accentColor}
+        themeId="minimal"
       />
 
-      {/* Modals */}
-      <ProductDetailModal
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-        accentColor={config.accentColor || '#2dd4bf'}
-      />
-
+      {/* Restaurant Info Modal */}
       <RestaurantInfoModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
         restaurant={restaurant}
-        isOpen={isInfoOpen}
-        onClose={() => setIsInfoOpen(false)}
-        accentColor={config.accentColor || '#2dd4bf'}
+        accentColor={accentColor}
       />
-    </div>
-  );
-};
-
-/* -------------------------------------------------------------------------- */
-/* Subcomponent: Minimal Architectural Row Item (Theme 03: Read The Menu)     */
-/* -------------------------------------------------------------------------- */
-interface MinimalItemProps {
-  item: MenuItem;
-  onSelect: (item: MenuItem) => void;
-  accentColor: string;
-}
-
-const MinimalItemRow: React.FC<MinimalItemProps> = ({ item, onSelect, accentColor }) => {
-  const { getItemQuantity } = useMenuSelection();
-  const quantity = getItemQuantity(item.id);
-  const isSoldOut = item.availability === 'sold_out';
-
-  return (
-    <div
-      onClick={() => onSelect(item)}
-      id={`minimal-item-${item.id}`}
-      className={`py-3 px-3.5 rounded-2xl transition-all duration-200 flex items-center justify-between gap-3.5 cursor-pointer group ${
-        quantity > 0
-          ? 'bg-teal-950/25 border border-teal-500/30 shadow-sm'
-          : 'hover:bg-neutral-900/60 border border-transparent'
-      } ${isSoldOut ? 'opacity-55' : ''}`}
-    >
-      {/* Content Side */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 text-right">
-        {/* Row 1: Title (Primary element) & Price (Lighter) */}
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          <h4 className="font-semibold text-sm text-neutral-100 group-hover:text-teal-300 transition-colors truncate">
-            {item.name}
-          </h4>
-
-          <span className="text-xs sm:text-sm font-normal text-teal-300/90 shrink-0 tracking-tight whitespace-nowrap">
-            {formatToman(item.price)}
-          </span>
-        </div>
-
-        {/* Row 2: Strict Single-Line Description */}
-        <div className="min-w-0 mt-1">
-          <p className="text-xs text-neutral-400 font-light truncate leading-normal">
-            {item.description}
-          </p>
-        </div>
-
-        {/* Row 3: Subtle Quantity or Detail Indication */}
-        {quantity > 0 ? (
-          <div className="mt-1.5 flex items-center">
-            <span className="text-[9px] font-medium text-teal-300 bg-teal-950/60 border border-teal-500/30 px-2 py-0.2 rounded-full whitespace-nowrap">
-              {toPersianDigits(quantity)} انتخاب شده
-            </span>
-          </div>
-        ) : (
-          <div className="mt-1 flex items-center justify-end">
-            <span className="text-[10px] text-neutral-500 group-hover:text-neutral-300 transition-colors font-light whitespace-nowrap">
-              جزئیات
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Clean Architectural Thumbnail with SafeImage */}
-      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-neutral-950 shrink-0 border border-neutral-800">
-        <SafeImage
-          src={item.image}
-          alt={item.name}
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-            isSoldOut ? 'grayscale contrast-75' : ''
-          }`}
-          fallbackIconClassName="w-5 h-5 text-neutral-600"
-        />
-
-        {isSoldOut && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="text-[9px] font-medium text-neutral-300 whitespace-nowrap">ناموجود</span>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

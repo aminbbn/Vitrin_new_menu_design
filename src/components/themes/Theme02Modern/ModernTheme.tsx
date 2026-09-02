@@ -139,8 +139,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 src={restaurant.heroImage}
                 alt={restaurant.name}
                 className="w-full h-full object-cover object-center scale-105"
-                containerClassName="w-full h-full"
-                fallbackClassName="w-full h-full bg-stone-200"
+                fallbackContainerClassName="w-full h-full bg-stone-200"
+                fallbackIconClassName="w-12 h-12 text-stone-400"
               />
 
               {/* Refined Tonal Overlay: Warm Ivory Paper Wash with Gentle Contrast Protection */}
@@ -174,7 +174,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                       src={restaurant.logo}
                       alt={restaurant.name}
                       className="max-h-full max-w-full object-contain"
-                      containerClassName="w-full h-full flex items-center justify-center"
+                      fallbackContainerClassName="w-full h-full flex items-center justify-center bg-stone-100"
+                      fallbackIconClassName="w-6 h-6 text-stone-400"
                     />
                   </div>
                 </EntranceItem>
@@ -332,7 +333,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                       src={restaurant.logo}
                       alt={restaurant.name}
                       className="max-h-full max-w-full object-contain"
-                      containerClassName="w-full h-full flex items-center justify-center"
+                      fallbackContainerClassName="w-full h-full flex items-center justify-center bg-stone-100"
+                      fallbackIconClassName="w-4 h-4 text-stone-400"
                     />
                   </div>
                   <div className="min-w-0">

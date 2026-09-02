@@ -28,6 +28,7 @@ export interface MenuCategory {
   name: string;
   nameEn?: string;
   icon?: string;
+  image?: string;
   description?: string;
   itemCount?: number;
 }

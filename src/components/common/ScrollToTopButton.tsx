@@ -113,7 +113,7 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
               themeId === 'modern'
                 ? 'bg-[#FAF8F5]/95 hover:bg-stone-100 border-stone-300 text-stone-800 shadow-[0_4px_20px_rgba(0,0,0,0.12)]'
                 : themeId === 'minimal'
-                ? 'bg-[#0d1317]/95 hover:bg-neutral-800 border-neutral-700 text-teal-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
+                ? 'bg-[#14171c]/95 hover:bg-neutral-800 border-white/15 text-white shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
                 : 'bg-neutral-900/95 hover:bg-neutral-800 border-neutral-700 text-amber-300 shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
             }`}
             aria-label="بازگشت به بالای منو"
