@@ -350,7 +350,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       {/* ------------------------------------------------------------------ */}
       {/* 3. MENU CONTENT STREAM (Revealed from underneath in document flow) */}
       {/* ------------------------------------------------------------------ */}
-      <main className="max-w-2xl mx-auto w-full px-4 pt-6 space-y-10 pb-28">
+      <main className="relative z-10 max-w-2xl mx-auto w-full px-4 pt-6 space-y-10 pb-28">
         {/* If search query is active */}
         {searchQuery ? (
           <EntranceSection className="space-y-4">
