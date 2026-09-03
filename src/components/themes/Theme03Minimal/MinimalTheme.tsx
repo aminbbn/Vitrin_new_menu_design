@@ -249,8 +249,8 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                   </div>
                 </div>
 
-                {/* 2 columns on Mobile (2 cols × 3 rows for 6 items), 3 cols on Desktop */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5">
+                {/* Strict 2-column grid: flows naturally into as many rows as needed */}
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
                   {restaurant.categories.map((category, index) => (
                     <EntranceItem key={category.id} index={index + 1}>
                       <CategoryGalleryCard

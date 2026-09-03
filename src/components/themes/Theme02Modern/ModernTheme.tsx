@@ -9,7 +9,6 @@ import {
   Clock,
   Utensils,
   ChevronDown,
-  LayoutGrid,
 } from 'lucide-react';
 import { RestaurantData, MenuThemeConfig, MenuCategory, MenuItem } from '../../../types/menu';
 import { toPersianDigits } from '../../../utils/formatters';
@@ -363,18 +362,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                   </div>
                 </div>
 
-                {/* Left (RTL): Header Actions (Categories Sheet Button & Return to Cover) */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setIsCategorySheetOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-stone-100 active:bg-stone-200 border border-stone-200/90 text-xs font-semibold text-stone-700 hover:text-stone-900 shadow-2xs active:scale-95 transition-all cursor-pointer"
-                    title="فهرست دسته‌بندی‌ها"
-                  >
-                    <LayoutGrid className="w-3.5 h-3.5 text-stone-600" />
-                    <span className="hidden sm:inline">دسته‌ها</span>
-                  </button>
-
+                {/* Left (RTL): Header Action (Return to Cover) */}
+                <div className="flex items-center shrink-0">
                   <button
                     type="button"
                     onClick={handleReturnToCover}
