@@ -25,7 +25,6 @@ import { getCategoryDisplayImage } from './categoryImageUtils';
 import { ScrollToTopButton } from '../../common/ScrollToTopButton';
 import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
 import { ProductDetailModal } from '../../common/ProductDetailModal';
-import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
 import { MenuSelectionBar } from '../../common/MenuSelectionBar';
 import { MenuSelectionSheet } from '../../common/MenuSelectionSheet';
 
@@ -61,7 +60,6 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
 
   // Modal / Overlay states
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
-  const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   // Search state within category view
@@ -80,7 +78,6 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   const handleSelectCategory = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
     setViewState('category');
-    setIsCategorySheetOpen(false);
     setSearchQuery('');
     setIsSearchOpen(false);
     onStateChange?.('menu');
@@ -322,7 +319,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                   </div>
                 </div>
 
-                {/* Left (RTL): Quick Actions (Search, Category Sheet, Return to Gallery) */}
+                {/* Left (RTL): Quick Actions (Search, Return to Gallery) */}
                 <div className="flex items-center gap-2 shrink-0">
                   {/* Search Toggle */}
                   <button
@@ -338,18 +335,6 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                     title="جستجو"
                   >
                     <Search className="w-4 h-4" />
-                  </button>
-
-                  {/* Category Switcher Bottom Sheet Trigger */}
-                  <button
-                    type="button"
-                    id="open-categories-sheet-btn"
-                    onClick={() => setIsCategorySheetOpen(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 text-xs font-medium text-neutral-200 active:scale-95 transition-all cursor-pointer"
-                    aria-label="تغییر دسته‌بندی"
-                  >
-                    <Layers className="w-3.5 h-3.5 text-neutral-300" />
-                    <span className="hidden sm:inline">دسته‌ها</span>
                   </button>
 
                   {/* Return to Gallery Button */}
@@ -598,20 +583,6 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       <ProductDetailModal
         item={selectedProduct}
         onClose={handleCloseProductDetail}
-        accentColor={primaryColor}
-        primaryColor={primaryColor}
-        secondaryColor={secondaryColor}
-        themeId="minimal"
-      />
-
-      {/* Category Bottom Sheet (For fast category jumping) */}
-      <CategoryBottomSheet
-        isOpen={isCategorySheetOpen}
-        onClose={() => setIsCategorySheetOpen(false)}
-        categories={restaurant.categories}
-        items={restaurant.items}
-        activeCategoryId={selectedCategoryId}
-        onSelectCategory={handleSelectCategory}
         accentColor={primaryColor}
         primaryColor={primaryColor}
         secondaryColor={secondaryColor}

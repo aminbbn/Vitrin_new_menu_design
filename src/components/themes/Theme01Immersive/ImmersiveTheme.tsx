@@ -129,7 +129,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
     <div
       ref={containerRef}
       dir="rtl"
-      className="min-h-screen bg-[#070b0e] text-neutral-100 font-sans relative selection:bg-amber-500/20"
+      className="min-h-screen bg-[#070b0e] text-neutral-100 font-sans relative"
       style={{
         backgroundColor: config.bgColor || '#070b0e',
         color: config.textColor,
@@ -195,7 +195,10 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         <EntranceItem index={0} className="relative z-10 w-full px-4 sm:px-6 pt-4 sm:pt-5 max-w-2xl mx-auto flex items-center justify-between">
           {/* Restaurant Identity */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden p-0.5 border border-amber-500/40 bg-black/60 backdrop-blur-md shadow-xl flex-shrink-0">
+            <div
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden p-0.5 border bg-black/60 backdrop-blur-md shadow-xl flex-shrink-0"
+              style={{ borderColor: `${primaryColor}70` }}
+            >
               <img
                 src={restaurant.logo}
                 alt={restaurant.name}
@@ -204,7 +207,10 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
             </div>
 
             <div>
-              <h1 className="font-bold text-amber-300 tracking-tight text-base sm:text-lg whitespace-nowrap">
+              <h1
+                className="font-bold tracking-tight text-base sm:text-lg whitespace-nowrap"
+                style={{ color: primaryColor }}
+              >
                 {restaurant.name}
               </h1>
               <p className="text-[11px] sm:text-xs text-neutral-300 font-light whitespace-nowrap">
@@ -221,7 +227,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-neutral-200 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all cursor-pointer shadow-lg shrink-0"
               aria-label="اطلاعات رستوران"
             >
-              <Info className="w-4 h-4 text-amber-300" />
+              <Info className="w-4 h-4" style={{ color: secondaryColor }} />
             </button>
           </div>
         </EntranceItem>
@@ -390,7 +396,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="جستجوی نام غذا، نوشیدنی، ترکیبات..."
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500"
+                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors"
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = primaryColor;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '';
+                  }}
                   autoFocus
                 />
                 {searchQuery && (
