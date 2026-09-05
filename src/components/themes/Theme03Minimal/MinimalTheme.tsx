@@ -16,6 +16,7 @@ import {
 import { RestaurantData, MenuThemeConfig, MenuCategory, MenuItem } from '../../../types/menu';
 import { toPersianDigits } from '../../../utils/formatters';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
+import { getContrastForeground } from '../../../utils/themeColors';
 import { SafeImage } from '../../common/SafeImage';
 import { EntranceSection, EntranceItem } from '../../../motion';
 import { CategoryGalleryCard } from './CategoryGalleryCard';
@@ -44,7 +45,10 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
   isDashboardPreview = false,
 }) => {
   const { scrollToTop } = useMenuViewport();
-  const accentColor = config.accentColor || '#38bdf8';
+  const primaryColor = config.primaryColor || config.accentColor || '#38bdf8';
+  const secondaryColor = config.secondaryColor || '#f59e0b';
+  const primaryFg = getContrastForeground(primaryColor);
+  const accentColor = primaryColor;
 
   // Navigation state: 'gallery' (visual category explorer landing) vs 'category' (image-led product feed)
   const [viewState, setViewState] = useState<'gallery' | 'category'>(
@@ -241,7 +245,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                   <div className="flex items-center gap-2">
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: accentColor }}
+                      style={{ backgroundColor: primaryColor }}
                     />
                     <h2 className="font-bold text-sm sm:text-base text-neutral-200 tracking-tight">
                       دسته‌بندی‌های منو
@@ -257,7 +261,9 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                         category={category}
                         items={restaurant.items}
                         restaurantHeroImage={restaurant.heroImage}
-                        accentColor={accentColor}
+                        accentColor={primaryColor}
+                        primaryColor={primaryColor}
+                        secondaryColor={secondaryColor}
                         gradientStrength={config.minimalSettings?.gradientStrength}
                         onSelect={handleSelectCategory}
                         index={index}
@@ -486,7 +492,9 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                       <EntranceItem key={item.id} index={index}>
                         <VisualProductItem
                           item={item}
-                          accentColor={accentColor}
+                          accentColor={primaryColor}
+                          primaryColor={primaryColor}
+                          secondaryColor={secondaryColor}
                           onSelect={handleOpenProductDetail}
                           index={index}
                         />
@@ -513,9 +521,18 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
                           onClick={() => handleSelectCategory(cat.id)}
                           className={`shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
                             isCurrent
-                              ? 'bg-white/20 text-white border-white/30 shadow-xs'
+                              ? 'shadow-xs font-semibold'
                               : 'bg-[#16191f] text-neutral-300 hover:text-white border-white/10 hover:bg-white/10'
                           }`}
+                          style={
+                            isCurrent
+                              ? {
+                                  backgroundColor: primaryColor,
+                                  borderColor: primaryColor,
+                                  color: primaryFg,
+                                }
+                              : undefined
+                          }
                         >
                           {cat.name}
                         </button>
@@ -555,19 +572,25 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
 
       {/* Floating Menu Selection Bar (Style 3) */}
       <MenuSelectionBar
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="minimal"
       />
 
       {/* Menu Selection Bottom Sheet (Style 3) */}
       <MenuSelectionSheet
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="minimal"
       />
 
       {/* Floating Scroll to Top Button */}
       <ScrollToTopButton
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="minimal"
       />
 
@@ -575,7 +598,9 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
       <ProductDetailModal
         item={selectedProduct}
         onClose={handleCloseProductDetail}
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="minimal"
       />
 
@@ -587,7 +612,9 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
         items={restaurant.items}
         activeCategoryId={selectedCategoryId}
         onSelectCategory={handleSelectCategory}
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="minimal"
       />
 
@@ -596,7 +623,7 @@ export const MinimalTheme: React.FC<MinimalThemeProps> = ({
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         restaurant={restaurant}
-        accentColor={accentColor}
+        accentColor={primaryColor}
       />
     </div>
   );

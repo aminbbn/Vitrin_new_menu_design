@@ -69,6 +69,8 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
       return;
     }
 
+    let rAFId: number | null = null;
+
     const updateScale = () => {
       if (!stageRef.current) return;
       const stage = stageRef.current;
@@ -83,26 +85,40 @@ export const DevicePreviewFrame: React.FC<DevicePreviewFrameProps> = ({
       const scaleX = availableWidth / targetWidth;
       const scaleY = availableHeight / targetHeight;
       const fitScale = Math.min(scaleX, scaleY, 1); // Never scale up beyond 100%
+      const targetScale = Math.max(0.35, Math.round(fitScale * 100) / 100);
 
-      setScale(Math.max(0.35, fitScale));
+      setScale((currentScale) => {
+        if (Math.abs(currentScale - targetScale) < 0.01) {
+          return currentScale; // Bail out to avoid triggering re-render loops
+        }
+        return targetScale;
+      });
     };
 
     updateScale();
 
+    const debouncedUpdateScale = () => {
+      if (rAFId !== null) cancelAnimationFrame(rAFId);
+      rAFId = requestAnimationFrame(() => {
+        updateScale();
+      });
+    };
+
     const resizeObserver = new ResizeObserver(() => {
-      updateScale();
+      debouncedUpdateScale();
     });
 
     if (stageRef.current) {
       resizeObserver.observe(stageRef.current);
     }
 
-    window.addEventListener('resize', updateScale);
+    window.addEventListener('resize', debouncedUpdateScale);
     return () => {
+      if (rAFId !== null) cancelAnimationFrame(rAFId);
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateScale);
+      window.removeEventListener('resize', debouncedUpdateScale);
     };
-  }, [deviceType, preset, autoFit]);
+  }, [deviceType, preset.width, preset.height, autoFit]);
 
   // Full / Responsive Viewport without Device Frame
   if (deviceType === 'responsive') {

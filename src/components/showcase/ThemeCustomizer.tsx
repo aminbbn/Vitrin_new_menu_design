@@ -16,9 +16,18 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  ArrowLeftRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { ImageInput } from './ImageInput';
+import { ColorControl } from './ColorControl';
 import { mockRestaurantData } from '../../data/mockMenuData';
+import {
+  resolveThemeColors,
+  DEFAULT_THEME_COLORS,
+  areColorsTooSimilar,
+  getRelativeLuminance,
+} from '../../utils/themeColors';
 
 interface ThemeCustomizerProps {
   restaurant: RestaurantData;
@@ -28,13 +37,12 @@ interface ThemeCustomizerProps {
   onReset: () => void;
 }
 
-const ACCENT_PRESETS = [
-  { label: 'طلایی لوکس (Gold)', value: '#d4af37' },
-  { label: 'نارنجی اشتهاآور (Orange)', value: '#f97316' },
-  { label: 'سبز زمردی (Emerald)', value: '#10b981' },
-  { label: 'فیروزه‌ای مدرن (Teal)', value: '#0f766e' },
-  { label: 'آبی آسمانی (Sky)', value: '#38bdf8' },
-  { label: 'زرشکی کهنسال (Ruby)', value: '#e11d48' },
+// Optional curated suggestions as shortcuts (never limits)
+const OPTIONAL_PAIR_SUGGESTIONS = [
+  { label: 'طلایی و زرشکی', primary: '#D4AF37', secondary: '#B76E79' },
+  { label: 'یشمی و آجری', primary: '#0F766E', secondary: '#B7794B' },
+  { label: 'فیروزه‌ای و لاجوردی', primary: '#38BDF8', secondary: '#A78BFA' },
+  { label: 'زمردی و نارنجی', primary: '#10B981', secondary: '#F97316' },
 ];
 
 export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
@@ -47,10 +55,58 @@ export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
   const [copied, setCopied] = useState(false);
   const [openCategoryIndex, setOpenCategoryIndex] = useState<number | null>(null);
 
+  const currentColors = resolveThemeColors(config, config.id);
+  const defaultColors = DEFAULT_THEME_COLORS[config.id] || DEFAULT_THEME_COLORS.immersive;
+
+  const handleSwapColors = () => {
+    onConfigChange({
+      ...config,
+      primaryColor: currentColors.secondary,
+      secondaryColor: currentColors.primary,
+      accentColor: currentColors.secondary,
+      accentColorLight: currentColors.primary,
+    });
+  };
+
+  const handleSelectPair = (p: string, s: string) => {
+    onConfigChange({
+      ...config,
+      primaryColor: p,
+      secondaryColor: s,
+      accentColor: p,
+      accentColorLight: s,
+    });
+  };
+
+  // Contrast & similarity check
+  const areSimilar = areColorsTooSimilar(currentColors.primary, currentColors.secondary);
+  const primLum = getRelativeLuminance(currentColors.primary);
+  const isTooExtreme = (config.id === 'modern' && primLum > 0.88) || (config.id !== 'modern' && primLum < 0.08);
+
+  let colorWarning: string | null = null;
+  if (areSimilar) {
+    colorWarning = 'رنگ اصلی و مکمل شباهت زیادی به یکدیگر دارند؛ پیشنهاد می‌شود برای تفکیک بهتر از رنگ‌های متمایزتر استفاده فرمایید.';
+  } else if (isTooExtreme) {
+    colorWarning = 'کنتراست این رنگ برای بعضی اجزا ممکن است پایین باشد.';
+  }
+
   const handleCopyJson = () => {
     // Clean export without transient blob URLs
     const exportData = {
-      themeConfig: config,
+      themeConfig: {
+        id: config.id,
+        primaryColor: currentColors.primary,
+        secondaryColor: currentColors.secondary,
+        backgroundIntensity: config.backgroundIntensity || 'balanced',
+        fontFamily: config.fontFamily,
+        borderRadius: config.borderRadius,
+        hero: config.hero,
+        categoryNavigationVariant: config.categoryNavigationVariant,
+        cardLayout: config.cardLayout,
+        ...(config.id === 'immersive' && { immersiveSettings: config.immersiveSettings }),
+        ...(config.id === 'modern' && { modernSettings: config.modernSettings }),
+        ...(config.id === 'minimal' && { minimalSettings: config.minimalSettings }),
+      },
       restaurantIdentity: {
         name: restaurant.name,
         tagline: restaurant.tagline,
@@ -175,31 +231,123 @@ export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
           placeholder="https://..."
         />
 
-        {/* Accent Color Picker */}
-        <div className="space-y-2 pt-1">
-          <label className="font-semibold text-neutral-300 flex items-center gap-1.5 text-[11px]">
-            <Palette className="w-3 h-3 text-amber-400" />
-            رنگ شاخص پوسته (Accent Color)
-          </label>
-          <div className="grid grid-cols-3 gap-1.5">
-            {ACCENT_PRESETS.map((preset) => (
-              <button
-                key={preset.value}
-                type="button"
-                onClick={() => onConfigChange({ ...config, accentColor: preset.value })}
-                className={`p-1.5 rounded-xl border flex flex-col items-center gap-1 text-[10px] transition-all cursor-pointer ${
-                  config.accentColor.toLowerCase() === preset.value.toLowerCase()
-                    ? 'border-white bg-neutral-800 font-bold text-white shadow-xs'
-                    : 'border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-700'
-                }`}
-              >
-                <span
-                  className="w-3.5 h-3.5 rounded-full shadow-xs shrink-0"
-                  style={{ backgroundColor: preset.value }}
-                />
-                <span className="truncate w-full text-center">{preset.label.split(' ')[0]}</span>
-              </button>
-            ))}
+        {/* Brand Colors System (Primary & Secondary Unrestricted Pickers) */}
+        <div className="space-y-3 pt-2 pb-1 border-t border-b border-neutral-800/80">
+          <div className="flex items-center justify-between">
+            <label className="font-bold text-neutral-200 flex items-center gap-1.5 text-xs">
+              <Palette className="w-3.5 h-3.5 text-amber-400" />
+              رنگ‌بندی برند منو (Brand Colors)
+            </label>
+            <button
+              type="button"
+              onClick={handleSwapColors}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:bg-neutral-600 text-neutral-300 hover:text-white text-[10px] font-medium transition-all active:scale-95 cursor-pointer"
+              title="تعویض جایگاه رنگ اصلی و مکمل"
+            >
+              <ArrowLeftRight className="w-3 h-3 text-amber-400" />
+              <span>تعویض رنگ‌ها</span>
+            </button>
+          </div>
+
+          {/* Primary Color Control */}
+          <ColorControl
+            id="primary-color-control"
+            label="رنگ اصلی"
+            sublabel="Primary Color"
+            value={currentColors.primary}
+            defaultValue={defaultColors.primary}
+            onChange={(newColor) => {
+              onConfigChange({
+                ...config,
+                primaryColor: newColor,
+                accentColor: newColor,
+              });
+            }}
+          />
+
+          {/* Secondary Color Control */}
+          <ColorControl
+            id="secondary-color-control"
+            label="رنگ مکمل"
+            sublabel="Secondary Color"
+            value={currentColors.secondary}
+            defaultValue={defaultColors.secondary}
+            onChange={(newColor) => {
+              onConfigChange({
+                ...config,
+                secondaryColor: newColor,
+                accentColorLight: newColor,
+              });
+            }}
+          />
+
+          {/* Non-blocking contrast / similarity warning */}
+          {colorWarning && (
+            <div className="flex items-start gap-2 p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[10px] leading-relaxed">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
+              <span>{colorWarning}</span>
+            </div>
+          )}
+
+          {/* Optional Inspiration Shortcuts (never restrictive) */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-[10px] text-neutral-400 block">پیشنهادهای الهام‌بخش (اختیاری):</span>
+            <div className="grid grid-cols-2 gap-1.5">
+              {OPTIONAL_PAIR_SUGGESTIONS.map((item) => {
+                const isSelected =
+                  currentColors.primary.toUpperCase() === item.primary.toUpperCase() &&
+                  currentColors.secondary.toUpperCase() === item.secondary.toUpperCase();
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => handleSelectPair(item.primary, item.secondary)}
+                    className={`p-1.5 rounded-xl border flex items-center gap-2 text-[10px] transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-white bg-neutral-800 font-bold text-white shadow-xs'
+                        : 'border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-700'
+                    }`}
+                  >
+                    <div className="flex -space-x-1 shrink-0">
+                      <span
+                        className="w-3 h-3 rounded-full border border-black/40 shadow-xs"
+                        style={{ backgroundColor: item.primary }}
+                      />
+                      <span
+                        className="w-3 h-3 rounded-full border border-black/40 shadow-xs"
+                        style={{ backgroundColor: item.secondary }}
+                      />
+                    </div>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Background Atmosphere Intensity */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-[10px] text-neutral-400 block">شدت پس‌زمینه (Atmosphere Intensity):</span>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(['soft', 'balanced', 'strong'] as const).map((lvl) => {
+                const currentLvl = config.backgroundIntensity || 'balanced';
+                const isSelected = currentLvl === lvl;
+                return (
+                  <button
+                    key={lvl}
+                    type="button"
+                    onClick={() => onConfigChange({ ...config, backgroundIntensity: lvl })}
+                    className={`py-1.5 px-2 rounded-xl border text-[10px] transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-amber-400/80 bg-neutral-800 text-white font-bold shadow-xs'
+                        : 'border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-700'
+                    }`}
+                  >
+                    {lvl === 'soft' ? 'ملایم' : lvl === 'balanced' ? 'متعادل' : 'پررنگ'}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -754,7 +902,9 @@ export const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({
           {JSON.stringify(
             {
               themeId: config.id,
-              accentColor: config.accentColor,
+              primaryColor: currentColors.primary,
+              secondaryColor: currentColors.secondary,
+              backgroundIntensity: config.backgroundIntensity || 'balanced',
               ...(config.id === 'immersive' && { immersiveSettings: config.immersiveSettings, hero: config.hero }),
               ...(config.id === 'modern' && { modernSettings: config.modernSettings }),
               ...(config.id === 'minimal' && { minimalSettings: config.minimalSettings }),

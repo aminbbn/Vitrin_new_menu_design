@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { RestaurantData, MenuThemeConfig, MenuItem } from '../../../types/menu';
 import { formatToman, toPersianDigits } from '../../../utils/formatters';
+import { getContrastForeground } from '../../../utils/colorUtils';
 import { ProductDetailModal } from '../../common/ProductDetailModal';
 import { RestaurantInfoModal } from '../../common/RestaurantInfoModal';
 import { CategoryBottomSheet } from '../../common/CategoryBottomSheet';
@@ -120,6 +121,10 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
   const featuredItems = restaurant.items.filter((item) => item.isFeatured);
   const activeCategoryObj = restaurant.categories.find((c) => c.id === activeCategory);
 
+  const primaryColor = config.primaryColor || config.accentColor || '#D4AF37';
+  const secondaryColor = config.secondaryColor || config.accentColorLight || '#B76E79';
+  const primaryFg = getContrastForeground(primaryColor);
+
   return (
     <div
       ref={containerRef}
@@ -131,7 +136,13 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       }}
     >
       {/* Ambient Animated Atmospheric Glow Layer */}
-      <AmbientBackground theme="immersive" accentColor={config.accentColor} />
+      <AmbientBackground
+        theme="immersive"
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        accentColor={primaryColor}
+        intensity={config.backgroundIntensity || 'balanced'}
+      />
 
       {/* ------------------------------------------------------------------ */}
       {/* 1. CONTINUOUS HERO SURFACE (Moves upward like a curtain/shutter)    */}
@@ -229,14 +240,14 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               transition={{ duration: 0.45 }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-5 z-10 flex flex-col items-center text-center space-y-3.5 pointer-events-auto"
             >
-              {/* Gold Ornament Divider */}
-              <EntranceItem index={1} className="flex items-center gap-2 text-amber-400 text-xs tracking-widest">
-                <span className="w-6 h-[1px] bg-amber-400/40" />
+              {/* Brand Ornament Divider */}
+              <EntranceItem index={1} className="flex items-center gap-2 text-xs tracking-widest" style={{ color: primaryColor }}>
+                <span className="w-6 h-[1px]" style={{ backgroundColor: `${primaryColor}60` }} />
                 <span className="inline-flex items-center gap-1.5 font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <Sparkles className="w-3.5 h-3.5" style={{ color: primaryColor }} />
                   منوی دیجیتال
                 </span>
-                <span className="w-6 h-[1px] bg-amber-400/40" />
+                <span className="w-6 h-[1px]" style={{ backgroundColor: `${primaryColor}60` }} />
               </EntranceItem>
 
               {/* Main Headline with intentional line layout */}
@@ -256,6 +267,8 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                     workingHours={restaurant.workingHours}
                     location={restaurant.neighborhood}
                     themeId="immersive"
+                    primaryColor={primaryColor}
+                    secondaryColor={secondaryColor}
                   />
                 </EntranceItem>
               )}
@@ -282,7 +295,12 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                   whileTap={{ scale: 0.97 }}
                   onClick={() => enterMenu('cta')}
                   id="enter-menu-hero-btn"
-                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-bold text-sm sm:text-base shadow-[0_12px_32px_rgba(212,175,55,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
+                  className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
+                  style={{
+                    background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+                    color: primaryFg,
+                    boxShadow: `0 12px 32px ${primaryColor}40`,
+                  }}
                 >
                   <span className="whitespace-nowrap">{config.hero.ctaText}</span>
                   <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
@@ -309,7 +327,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
               <span className="truncate whitespace-nowrap">پذیرایی حضوری • {toPersianDigits(restaurant.workingHours)}</span>
             </div>
-            <div className="text-amber-300/90 font-medium shrink-0 whitespace-nowrap">
+            <div className="font-medium shrink-0 whitespace-nowrap" style={{ color: primaryColor }}>
               {toPersianDigits(restaurant.categories.length)} دسته‌بندی
             </div>
           </motion.div>
@@ -328,9 +346,14 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
           <button
             onClick={() => setIsCategorySheetOpen(true)}
             id="immersive-category-capsule-btn"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-sm border"
+            style={{
+              backgroundColor: `${primaryColor}20`,
+              color: primaryColor,
+              borderColor: `${primaryColor}40`,
+            }}
           >
-            <Layers className="w-3.5 h-3.5 text-amber-400" />
+            <Layers className="w-3.5 h-3.5" style={{ color: primaryColor }} />
             <span>دسته‌بندی: {activeCategoryObj?.name || 'همه دسته‌ها'}</span>
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -339,9 +362,12 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
-                showSearch ? 'bg-amber-500 text-black' : 'bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white'
-              }`}
+              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer"
+              style={
+                showSearch
+                  ? { backgroundColor: primaryColor, color: primaryFg }
+                  : { backgroundColor: 'rgb(23 23 23)', color: '#d4d4d4', border: '1px solid rgb(38 38 38)' }
+              }
               aria-label="جستجو در منو"
             >
               <Search className="w-4 h-4" />
@@ -407,7 +433,9 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                     <EditorialItemCard
                       item={item}
                       onSelect={setSelectedItem}
-                      accentColor={config.accentColor}
+                      accentColor={primaryColor}
+                      primaryColor={primaryColor}
+                      secondaryColor={secondaryColor}
                     />
                   </EntranceItem>
                 ))}
@@ -423,7 +451,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                   <div className="text-right">
                     <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2" dir="rtl">
                       <span
-                        style={{ backgroundColor: config.accentColor }}
+                        style={{ backgroundColor: primaryColor }}
                         className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                       />
                       <span>پیشنهاد سرآشپز و برگزیده‌ها</span>
@@ -432,7 +460,14 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                       Chef’s Signatures
                     </p>
                   </div>
-                  <span className="text-xs text-amber-400 font-medium px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 whitespace-nowrap">
+                  <span
+                    className="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap border"
+                    style={{
+                      backgroundColor: `${primaryColor}15`,
+                      borderColor: `${primaryColor}30`,
+                      color: primaryColor,
+                    }}
+                  >
                     امضای بونو
                   </span>
                 </div>
@@ -444,7 +479,9 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                       <FeaturedEditorialCard
                         item={item}
                         onSelect={setSelectedItem}
-                        accentColor={config.accentColor}
+                        accentColor={primaryColor}
+                        primaryColor={primaryColor}
+                        secondaryColor={secondaryColor}
                       />
                     </EntranceItem>
                   ))}
@@ -473,7 +510,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                     <div className="text-right">
                       <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2" dir="rtl">
                         <span
-                          style={{ backgroundColor: config.accentColor }}
+                          style={{ backgroundColor: primaryColor }}
                           className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                         />
                         <span>{category.name}</span>
@@ -496,7 +533,9 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
                         <EditorialItemCard
                           item={item}
                           onSelect={setSelectedItem}
-                          accentColor={config.accentColor}
+                          accentColor={primaryColor}
+                          primaryColor={primaryColor}
+                          secondaryColor={secondaryColor}
                         />
                       </EntranceItem>
                     ))}
@@ -509,7 +548,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
 
         {/* Brand Footer */}
         <EntranceSection as="footer" className="pt-8 pb-6 text-center space-y-2.5 border-t border-neutral-800/60 mt-8">
-          <EntranceItem index={0} className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-amber-500/20 bg-black/40">
+          <EntranceItem index={0} className="w-10 h-10 mx-auto rounded-xl overflow-hidden p-0.5 border border-white/10 bg-black/40">
             <img src={restaurant.logo} alt={restaurant.name} className="w-full h-full object-cover rounded-lg" />
           </EntranceItem>
           <EntranceItem index={1} as="h4" className="text-sm font-bold text-white text-center">{restaurant.name}</EntranceItem>
@@ -521,13 +560,27 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
       </main>
 
       {/* Floating Bottom-Docked Scroll To Top Button (Accounting for Selection Bar) */}
-      <ScrollToTopButton accentColor={config.accentColor} themeId="immersive" />
+      <ScrollToTopButton
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        accentColor={primaryColor}
+        themeId="immersive"
+      />
 
       {/* Sticky Customer Selection Summary Bar */}
-      <MenuSelectionBar accentColor={config.accentColor} themeId="immersive" />
+      <MenuSelectionBar
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        accentColor={primaryColor}
+        themeId="immersive"
+      />
 
       {/* Selections Bottom Sheet Modal */}
-      <MenuSelectionSheet accentColor={config.accentColor} />
+      <MenuSelectionSheet
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        accentColor={primaryColor}
+      />
 
       {/* All Categories Bottom Sheet Grid */}
       <CategoryBottomSheet
@@ -537,14 +590,18 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         items={restaurant.items}
         activeCategoryId={activeCategory}
         onSelectCategory={handleCategoryClick}
-        accentColor={config.accentColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        accentColor={primaryColor}
       />
 
       {/* Product Detail Modal */}
       <ProductDetailModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
-        accentColor={config.accentColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
+        accentColor={primaryColor}
       />
 
       {/* Restaurant Information Modal */}
@@ -552,7 +609,7 @@ export const ImmersiveTheme: React.FC<ImmersiveThemeProps> = ({
         restaurant={restaurant}
         isOpen={isInfoOpen}
         onClose={() => setIsInfoOpen(false)}
-        accentColor={config.accentColor}
+        accentColor={primaryColor}
       />
     </div>
   );
@@ -565,12 +622,21 @@ interface ItemCardProps {
   item: MenuItem;
   onSelect: (item: MenuItem) => void;
   accentColor: string;
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
-const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColor }) => {
+const FeaturedEditorialCard: React.FC<ItemCardProps> = ({
+  item,
+  onSelect,
+  accentColor,
+  primaryColor,
+  secondaryColor,
+}) => {
   const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
+  const prim = primaryColor || accentColor;
 
   return (
     <motion.div
@@ -580,15 +646,23 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
       id={`item-featured-${item.id}`}
       className={`relative bg-[#0d141f]/90 hover:bg-[#111a28]/95 backdrop-blur-md rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl cursor-pointer flex flex-row items-stretch h-[132px] group ${
         quantity > 0
-          ? 'border-amber-500/50 shadow-[0_8px_30px_rgba(212,175,55,0.14)] ring-1 ring-amber-500/20'
+          ? 'ring-1'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
+      style={
+        quantity > 0
+          ? {
+              borderColor: `${prim}70`,
+              boxShadow: `0 8px 30px ${prim}20`,
+            }
+          : undefined
+      }
     >
       {/* Content Side (Right in RTL) */}
       <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between h-full text-right">
         {/* Row 1: Title (Primary element) */}
         <div className="min-w-0">
-          <h4 className="font-semibold text-sm sm:text-base text-neutral-100 group-hover:text-amber-300 transition-colors tracking-tight truncate">
+          <h4 className="font-semibold text-sm sm:text-base text-neutral-100 group-hover:text-white transition-colors tracking-tight truncate">
             {item.name}
           </h4>
         </div>
@@ -602,13 +676,16 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
 
         {/* Row 3: Refined Price & Status */}
         <div className="mt-auto pt-1.5 border-t border-neutral-800/50 flex items-center justify-between">
-          <span className="text-xs sm:text-sm font-normal text-amber-300/90 tracking-tight whitespace-nowrap">
+          <span
+            className="text-xs sm:text-sm font-normal tracking-tight whitespace-nowrap"
+            style={{ color: prim }}
+          >
             {formatToman(item.price)}
           </span>
 
           {quantity > 0 ? (
             <span
-              style={{ backgroundColor: `${accentColor}18`, borderColor: `${accentColor}40`, color: accentColor }}
+              style={{ backgroundColor: `${prim}18`, borderColor: `${prim}40`, color: prim }}
               className="text-[10px] font-medium px-2 py-0.5 rounded-full border whitespace-nowrap"
             >
               {toPersianDigits(quantity)} انتخاب شده
@@ -649,10 +726,17 @@ const FeaturedEditorialCard: React.FC<ItemCardProps> = ({ item, onSelect, accent
 /* -------------------------------------------------------------------------- */
 /* Subcomponent: Standard Editorial Item Card (Theme 01)                       */
 /* -------------------------------------------------------------------------- */
-const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColor }) => {
+const EditorialItemCard: React.FC<ItemCardProps> = ({
+  item,
+  onSelect,
+  accentColor,
+  primaryColor,
+  secondaryColor,
+}) => {
   const { getItemQuantity } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
+  const prim = primaryColor || accentColor;
 
   return (
     <motion.div
@@ -662,15 +746,23 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
       id={`item-card-${item.id}`}
       className={`relative bg-[#0d141f]/85 hover:bg-[#111b2a]/90 backdrop-blur-sm border rounded-2xl p-3 sm:p-3.5 transition-all duration-200 cursor-pointer flex gap-3.5 items-center justify-between group shadow-md h-[100px] ${
         quantity > 0
-          ? 'border-amber-500/45 shadow-[0_4px_20px_rgba(212,175,55,0.12)] ring-1 ring-amber-500/20'
+          ? 'ring-1'
           : 'border-neutral-800/80 hover:border-neutral-700/80'
       } ${isSoldOut ? 'opacity-65' : ''}`}
+      style={
+        quantity > 0
+          ? {
+              borderColor: `${prim}70`,
+              boxShadow: `0 4px 20px ${prim}18`,
+            }
+          : undefined
+      }
     >
       {/* Content Side */}
       <div className="flex-1 min-w-0 h-full flex flex-col justify-between py-0.5 text-right">
         {/* Row 1: Title (Primary anchor) */}
         <div className="min-w-0">
-          <h4 className="font-semibold text-sm text-neutral-100 group-hover:text-amber-300 transition-colors truncate">
+          <h4 className="font-semibold text-sm text-neutral-100 group-hover:text-white transition-colors truncate">
             {item.name}
           </h4>
         </div>
@@ -684,13 +776,16 @@ const EditorialItemCard: React.FC<ItemCardProps> = ({ item, onSelect, accentColo
 
         {/* Row 3: Price and Indication */}
         <div className="flex items-center justify-between pt-1 border-t border-neutral-800/40">
-          <span className="text-xs sm:text-sm font-normal text-amber-300/90 tracking-tight whitespace-nowrap">
+          <span
+            className="text-xs sm:text-sm font-normal tracking-tight whitespace-nowrap"
+            style={{ color: prim }}
+          >
             {formatToman(item.price)}
           </span>
 
           {quantity > 0 ? (
             <span
-              style={{ backgroundColor: `${accentColor}18`, borderColor: `${accentColor}35`, color: accentColor }}
+              style={{ backgroundColor: `${prim}18`, borderColor: `${prim}35`, color: prim }}
               className="text-[9px] font-medium px-2 py-0.5 rounded-full border whitespace-nowrap"
             >
               {toPersianDigits(quantity)} انتخاب شده

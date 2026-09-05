@@ -7,6 +7,8 @@ interface HeroInfoPillsProps {
   workingHours: string;
   location: string;
   themeId?: 'immersive' | 'modern' | 'minimal';
+  primaryColor?: string;
+  secondaryColor?: string;
   accentColor?: string;
   className?: string;
 }
@@ -15,28 +17,15 @@ export const HeroInfoPills: React.FC<HeroInfoPillsProps> = ({
   workingHours,
   location,
   themeId = 'immersive',
+  primaryColor,
+  secondaryColor,
+  accentColor,
   className = '',
 }) => {
   const [expandedPill, setExpandedPill] = useState<'hours' | 'location' | null>(null);
 
-  // Theme-specific styling tokens
-  const themeStyles = {
-    immersive: {
-      pillBg: 'bg-black/50 backdrop-blur-md border-white/10 text-neutral-200 hover:border-amber-500/30',
-      expandedBorder: 'border-amber-400/40 bg-black/70',
-      iconColor: 'text-amber-400',
-    },
-    modern: {
-      pillBg: 'bg-slate-900/80 backdrop-blur-md border-slate-700/80 text-slate-200 hover:border-orange-500/30',
-      expandedBorder: 'border-orange-500/40 bg-slate-900/95',
-      iconColor: 'text-orange-400',
-    },
-    minimal: {
-      pillBg: 'bg-neutral-900/90 backdrop-blur-md border-neutral-800 text-neutral-200 hover:border-teal-500/30',
-      expandedBorder: 'border-teal-500/40 bg-neutral-900',
-      iconColor: 'text-teal-400',
-    },
-  }[themeId];
+  const brandPrimary = primaryColor || accentColor || 'var(--menu-primary, #D4AF37)';
+  const brandSecondary = secondaryColor || 'var(--menu-secondary, #B76E79)';
 
   const togglePill = (pill: 'hours' | 'location') => {
     setExpandedPill((current) => (current === pill ? null : pill));
@@ -60,13 +49,19 @@ export const HeroInfoPills: React.FC<HeroInfoPillsProps> = ({
               onClick={() => togglePill('hours')}
               className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border text-xs font-medium cursor-pointer select-none transition-colors overflow-hidden shadow-sm ${
                 expandedPill === 'hours'
-                  ? `flex-1 w-full ${themeStyles.expandedBorder}`
-                  : `flex-1 w-1/2 ${themeStyles.pillBg}`
+                  ? 'flex-1 w-full bg-black/75 border-white/30'
+                  : 'flex-1 w-1/2 bg-black/45 backdrop-blur-md border-white/10 text-neutral-200 hover:border-white/20'
               }`}
+              style={{
+                borderColor: expandedPill === 'hours' ? brandPrimary : undefined,
+              }}
               title="مشاهده ساعات فعالیت"
               aria-expanded={expandedPill === 'hours'}
             >
-              <Clock className={`w-3.5 h-3.5 shrink-0 ${themeStyles.iconColor}`} />
+              <Clock
+                className="w-3.5 h-3.5 shrink-0"
+                style={{ color: brandPrimary }}
+              />
               <span
                 className={`truncate ${
                   expandedPill === 'hours'
@@ -95,13 +90,19 @@ export const HeroInfoPills: React.FC<HeroInfoPillsProps> = ({
               onClick={() => togglePill('location')}
               className={`h-9 px-3 flex items-center justify-center gap-1.5 rounded-full border text-xs font-medium cursor-pointer select-none transition-colors overflow-hidden shadow-sm ${
                 expandedPill === 'location'
-                  ? `flex-1 w-full ${themeStyles.expandedBorder}`
-                  : `flex-1 w-1/2 ${themeStyles.pillBg}`
+                  ? 'flex-1 w-full bg-black/75 border-white/30'
+                  : 'flex-1 w-1/2 bg-black/45 backdrop-blur-md border-white/10 text-neutral-200 hover:border-white/20'
               }`}
+              style={{
+                borderColor: expandedPill === 'location' ? brandSecondary : undefined,
+              }}
               title="مشاهده موقعیت رستوران"
               aria-expanded={expandedPill === 'location'}
             >
-              <MapPin className={`w-3.5 h-3.5 shrink-0 ${themeStyles.iconColor}`} />
+              <MapPin
+                className="w-3.5 h-3.5 shrink-0"
+                style={{ color: brandSecondary }}
+              />
               <span
                 className={`truncate ${
                   expandedPill === 'location'

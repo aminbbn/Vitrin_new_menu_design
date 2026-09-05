@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useRef, useState, useEffect, useCallback, useMemo } from 'react';
 
 export type OverlayPresentation = 'mobile-sheet' | 'tablet-sheet' | 'desktop-modal';
 
@@ -24,6 +24,33 @@ interface MenuViewportContextType {
   getOverlayRoot: () => HTMLElement | null;
   overlayPresentation: OverlayPresentation;
 }
+
+const FALLBACK_VIEWPORT_CONTEXT: MenuViewportContextType = {
+  scrollContainerRef: { current: null },
+  getScrollContainer: () => (typeof window !== 'undefined' ? window : null),
+  getScrollTop: () => (typeof window !== 'undefined' ? window.scrollY : 0),
+  scrollToTop: async (smooth = true) => {
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+  },
+  scrollToElement: (id: string, offset = 76) => {
+    const target =
+      document.querySelector<HTMLElement>(
+        `[data-category-id="${id}"], [data-category-section-id="${id}"], #${CSS.escape(id)}`
+      ) || document.getElementById(id);
+    if (target && typeof window !== 'undefined') {
+      const top = target.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop || 0) - offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+  },
+  viewportWidth: typeof window !== 'undefined' ? window.innerWidth : 390,
+  viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 844,
+  isSimulated: false,
+  isOverlayOpen: false,
+  registerOverlay: () => () => {},
+  overlayRootRef: { current: null },
+  getOverlayRoot: () => (typeof document !== 'undefined' ? document.body : null),
+  overlayPresentation: 'mobile-sheet',
+};
 
 const MenuViewportContext = createContext<MenuViewportContextType | null>(null);
 
@@ -241,24 +268,43 @@ export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
     }
   }, [activeOverlays.size, getScrollContainer]);
 
+  const isOverlayOpen = activeOverlays.size > 0;
+
+  const contextValue = useMemo<MenuViewportContextType>(
+    () => ({
+      scrollContainerRef: activeContainerRef,
+      getScrollContainer,
+      getScrollTop,
+      scrollToTop,
+      scrollToElement,
+      viewportWidth,
+      viewportHeight,
+      isSimulated,
+      isOverlayOpen,
+      registerOverlay,
+      overlayRootRef: externalOverlayRootRef,
+      getOverlayRoot,
+      overlayPresentation,
+    }),
+    [
+      activeContainerRef,
+      getScrollContainer,
+      getScrollTop,
+      scrollToTop,
+      scrollToElement,
+      viewportWidth,
+      viewportHeight,
+      isSimulated,
+      isOverlayOpen,
+      registerOverlay,
+      externalOverlayRootRef,
+      getOverlayRoot,
+      overlayPresentation,
+    ]
+  );
+
   return (
-    <MenuViewportContext.Provider
-      value={{
-        scrollContainerRef: activeContainerRef,
-        getScrollContainer,
-        getScrollTop,
-        scrollToTop,
-        scrollToElement,
-        viewportWidth,
-        viewportHeight,
-        isSimulated,
-        isOverlayOpen: activeOverlays.size > 0,
-        registerOverlay,
-        overlayRootRef: externalOverlayRootRef,
-        getOverlayRoot,
-        overlayPresentation,
-      }}
-    >
+    <MenuViewportContext.Provider value={contextValue}>
       {children}
     </MenuViewportContext.Provider>
   );
@@ -267,34 +313,7 @@ export const MenuViewportProvider: React.FC<MenuViewportProviderProps> = ({
 export const useMenuViewport = () => {
   const context = useContext(MenuViewportContext);
   if (!context) {
-    // Fallback if not wrapped in provider
-    const fallbackWidth = typeof window !== 'undefined' ? window.innerWidth : 390;
-    return {
-      scrollContainerRef: { current: null },
-      getScrollContainer: () => (typeof window !== 'undefined' ? window : null),
-      getScrollTop: () => (typeof window !== 'undefined' ? window.scrollY : 0),
-      scrollToTop: async (smooth = true) => {
-        if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
-      },
-      scrollToElement: (id: string, offset = 76) => {
-        const target =
-          document.querySelector<HTMLElement>(
-            `[data-category-id="${id}"], [data-category-section-id="${id}"], #${CSS.escape(id)}`
-          ) || document.getElementById(id);
-        if (target && typeof window !== 'undefined') {
-          const top = target.getBoundingClientRect().top + (window.scrollY || document.documentElement.scrollTop || 0) - offset;
-          window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-        }
-      },
-      viewportWidth: fallbackWidth,
-      viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 844,
-      isSimulated: false,
-      isOverlayOpen: false,
-      registerOverlay: () => () => {},
-      overlayRootRef: { current: null },
-      getOverlayRoot: () => (typeof document !== 'undefined' ? document.body : null),
-      overlayPresentation: getOverlayPresentation(fallbackWidth),
-    };
+    return FALLBACK_VIEWPORT_CONTEXT;
   }
   return context;
 };

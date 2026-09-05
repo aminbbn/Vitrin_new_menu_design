@@ -8,7 +8,9 @@ interface CategoryGalleryCardProps {
   category: MenuCategory;
   items: MenuItem[];
   restaurantHeroImage?: string;
-  accentColor: string;
+  accentColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   gradientStrength?: 'subtle' | 'balanced' | 'strong';
   onSelect: (categoryId: string) => void;
   index: number;
@@ -18,11 +20,14 @@ export const CategoryGalleryCard: React.FC<CategoryGalleryCardProps> = ({
   category,
   items,
   restaurantHeroImage,
-  accentColor,
+  accentColor = '#38bdf8',
+  primaryColor,
+  secondaryColor,
   gradientStrength = 'balanced',
   onSelect,
 }) => {
   const imageUrl = getCategoryDisplayImage(category, items, restaurantHeroImage);
+  const prim = primaryColor || accentColor;
 
   // Gradient concentrated in the bottom 35-45% for clear contrast without darkening the whole photograph
   const gradientClass =
@@ -61,7 +66,7 @@ export const CategoryGalleryCard: React.FC<CategoryGalleryCardProps> = ({
       {/* 3. Micro Ambient Accent Glow on Hover */}
       <div
         className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"
-        style={{ backgroundColor: accentColor }}
+        style={{ backgroundColor: prim }}
       />
 
       {/* 4. Pure Persian Category Name Label (Smaller, 500/medium weight, max 2 intentional lines, no ellipsis, no English subtitle, no count) */}

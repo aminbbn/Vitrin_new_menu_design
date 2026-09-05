@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { MenuItem } from '../../types/menu';
 import { formatToman, toPersianDigits } from '../../utils/formatters';
+import { getContrastForeground } from '../../utils/colorUtils';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../context/MenuViewportContext';
 import { OverlayPortal } from './OverlayPortal';
@@ -22,6 +23,8 @@ interface ProductDetailModalProps {
   item: MenuItem | null;
   onClose: () => void;
   accentColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   themeId?: 'immersive' | 'modern' | 'minimal';
 }
 
@@ -29,8 +32,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   item,
   onClose,
   accentColor = '#d4af37',
+  primaryColor,
+  secondaryColor,
   themeId = 'immersive',
 }) => {
+  const prim = primaryColor || accentColor || 'var(--menu-primary, #D4AF37)';
+  const sec = secondaryColor || 'var(--menu-secondary, #B76E79)';
+
   return (
     <OverlayPortal>
       <AnimatePresence mode="wait">
@@ -40,6 +48,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             item={item}
             onClose={onClose}
             accentColor={accentColor}
+            primaryColor={prim}
+            secondaryColor={sec}
             themeId={themeId}
           />
         )}
@@ -55,6 +65,8 @@ interface ProductDetailOverlayContentProps {
   item: MenuItem;
   onClose: () => void;
   accentColor: string;
+  primaryColor: string;
+  secondaryColor: string;
   themeId: 'immersive' | 'modern' | 'minimal';
 }
 
@@ -62,10 +74,15 @@ const ProductDetailOverlayContent: React.FC<ProductDetailOverlayContentProps> = 
   item,
   onClose,
   accentColor,
+  primaryColor,
+  secondaryColor,
   themeId,
 }) => {
   const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
   const { isSimulated, overlayPresentation, registerOverlay } = useMenuViewport();
+
+  const prim = primaryColor || accentColor;
+  const primaryFg = getContrastForeground(prim);
 
   useEffect(() => {
     return registerOverlay(`product-modal-${item.id}`);
@@ -311,10 +328,13 @@ const ProductDetailOverlayContent: React.FC<ProductDetailOverlayContentProps> = 
               ) : currentQty === 0 ? (
                 <button
                   onClick={() => addItem(item.id)}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 active:scale-95 transition-all shadow-xs cursor-pointer whitespace-nowrap"
-                  style={{ backgroundColor: accentColor }}
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-xs cursor-pointer whitespace-nowrap"
+                  style={{
+                    backgroundColor: prim,
+                    color: primaryFg,
+                  }}
                 >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" style={{ stroke: primaryFg }} />
                   <span className="whitespace-nowrap">افزودن</span>
                 </button>
               ) : (
@@ -345,11 +365,14 @@ const ProductDetailOverlayContent: React.FC<ProductDetailOverlayContentProps> = 
                   </span>
                   <button
                     onClick={() => addItem(item.id)}
-                    className="w-6 h-6 rounded-lg text-white flex items-center justify-center active:scale-95 transition-all font-bold cursor-pointer shadow-xs"
-                    style={{ backgroundColor: accentColor }}
+                    className="w-6 h-6 rounded-lg flex items-center justify-center active:scale-95 transition-all font-bold cursor-pointer shadow-xs"
+                    style={{
+                      backgroundColor: prim,
+                      color: primaryFg,
+                    }}
                     aria-label="افزایش"
                   >
-                    <Plus className="w-3 h-3 text-white stroke-[2.5]" />
+                    <Plus className="w-3 h-3 stroke-[2.5]" style={{ stroke: primaryFg }} />
                   </button>
                 </div>
               )}

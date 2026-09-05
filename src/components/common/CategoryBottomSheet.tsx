@@ -15,6 +15,8 @@ interface CategoryBottomSheetProps {
   items: MenuItem[];
   activeCategoryId: string;
   onSelectCategory: (categoryId: string) => void;
+  primaryColor?: string;
+  secondaryColor?: string;
   accentColor?: string;
   themeId?: 'immersive' | 'modern' | 'minimal';
 }
@@ -26,10 +28,14 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
   items,
   activeCategoryId,
   onSelectCategory,
+  primaryColor,
+  secondaryColor,
   accentColor = '#d4af37',
   themeId = 'immersive',
 }) => {
   const pendingCategoryRef = useRef<string | null>(null);
+  const prim = primaryColor || accentColor || 'var(--menu-primary, #D4AF37)';
+  const sec = secondaryColor || 'var(--menu-secondary, #B76E79)';
 
   const handleSelect = (categoryId: string) => {
     pendingCategoryRef.current = categoryId;
@@ -57,7 +63,9 @@ export const CategoryBottomSheet: React.FC<CategoryBottomSheetProps> = ({
             activeCategoryId={activeCategoryId}
             onSelectCategory={handleSelect}
             onClose={onClose}
-            accentColor={accentColor}
+            accentColor={prim}
+            primaryColor={prim}
+            secondaryColor={sec}
             themeId={themeId}
           />
         )}
@@ -73,6 +81,8 @@ interface CategoryBottomSheetContentProps {
   onSelectCategory: (categoryId: string) => void;
   onClose: () => void;
   accentColor: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   themeId: 'immersive' | 'modern' | 'minimal';
 }
 

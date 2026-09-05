@@ -79,13 +79,20 @@ export interface MinimalExperienceSettings {
   gradientStrength: 'subtle' | 'balanced' | 'strong';
 }
 
+export type BackgroundIntensity = 'soft' | 'balanced' | 'strong';
+
 export interface MenuThemeConfig {
   id: ThemeId;
   name: string;
   nameFa: string;
   descriptionFa: string;
-  accentColor: string;
-  accentColorLight: string;
+  primaryColor: string;
+  secondaryColor: string;
+  /** @deprecated Legacy accent color - use primaryColor instead */
+  accentColor?: string;
+  /** @deprecated Legacy accent color light - use secondaryColor instead */
+  accentColorLight?: string;
+  backgroundIntensity?: BackgroundIntensity;
   bgColor: string;
   cardBgColor: string;
   textColor: string;

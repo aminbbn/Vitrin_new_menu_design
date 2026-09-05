@@ -4,20 +4,29 @@ import { ChevronLeft } from 'lucide-react';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
 import { useMenuViewport } from '../../context/MenuViewportContext';
 import { formatToman, toPersianDigits } from '../../utils/formatters';
+import { getContrastForeground } from '../../utils/colorUtils';
 import { OverlayPortal } from './OverlayPortal';
 
 interface MenuSelectionBarProps {
+  primaryColor?: string;
+  secondaryColor?: string;
   accentColor?: string;
   themeId?: 'immersive' | 'modern' | 'minimal';
 }
 
 export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
+  primaryColor,
+  secondaryColor,
   accentColor = '#d4af37',
   themeId = 'immersive',
 }) => {
   const { totalCount, totalPrice, setIsSelectionSheetOpen } = useMenuSelection();
   const { isSimulated } = useMenuViewport();
   const barRef = useRef<HTMLDivElement>(null);
+
+  const prim = primaryColor || accentColor || 'var(--menu-primary, #D4AF37)';
+  const sec = secondaryColor || 'var(--menu-secondary, #B76E79)';
+  const primaryFg = getContrastForeground(prim);
 
   // Dynamically broadcast the actual selection bar height via CSS variable to coordinate with ScrollToTopButton
   useLayoutEffect(() => {
@@ -26,10 +35,14 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
       : document.documentElement;
 
     if (totalCount > 0 && barRef.current) {
+      let lastHeight = -1;
       const updateHeight = () => {
         if (barRef.current) {
           const height = barRef.current.offsetHeight;
-          rootEl.style.setProperty('--vitrin-selection-bar-height', `${height}px`);
+          if (height !== lastHeight) {
+            lastHeight = height;
+            rootEl.style.setProperty('--vitrin-selection-bar-height', `${height}px`);
+          }
         }
       };
 
@@ -72,21 +85,24 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
                   : 'bg-neutral-950/95 border-neutral-700/80 shadow-[0_12px_36px_rgba(0,0,0,0.85)] text-white'
               }`}
               style={{
-                borderColor: isModernTheme ? `${accentColor}40` : `${accentColor}50`,
+                borderColor: isModernTheme ? `${prim}40` : `${prim}50`,
               }}
             >
               {/* Subtle Radiance Accent */}
               <div
                 className="absolute top-0 right-0 w-32 h-full opacity-10 pointer-events-none blur-xl"
-                style={{ backgroundColor: accentColor }}
+                style={{ backgroundColor: prim }}
               />
 
               {/* Info Side (Right in RTL) */}
               <div className="flex items-center gap-2.5 min-w-0 flex-1 pl-2">
                 {/* Badge Count */}
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs text-white shrink-0"
-                  style={{ backgroundColor: accentColor }}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs shrink-0"
+                  style={{
+                    backgroundColor: prim,
+                    color: primaryFg,
+                  }}
                 >
                   <span className="leading-none">{toPersianDigits(totalCount)}</span>
                 </div>
@@ -120,8 +136,11 @@ export const MenuSelectionBar: React.FC<MenuSelectionBarProps> = ({
               {/* Action Button: Compact, Single-line, Shrink-0 */}
               <div className="shrink-0 flex items-center">
                 <span
-                  className="text-xs font-semibold px-3 py-2 rounded-xl text-white shadow-xs flex items-center gap-1 group-hover:brightness-105 active:scale-95 transition-all whitespace-nowrap"
-                  style={{ backgroundColor: accentColor }}
+                  className="text-xs font-semibold px-3 py-2 rounded-xl shadow-xs flex items-center gap-1 group-hover:brightness-105 active:scale-95 transition-all whitespace-nowrap"
+                  style={{
+                    backgroundColor: prim,
+                    color: primaryFg,
+                  }}
                 >
                   <span>مشاهده</span>
                   <ChevronLeft className="w-3.5 h-3.5 -mr-0.5" />

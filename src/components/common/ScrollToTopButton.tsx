@@ -34,7 +34,10 @@ export const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
         }
       }
 
-      setIsVisible(scrollY > 220);
+      setIsVisible((prev) => {
+        const next = scrollY > 220;
+        return prev !== next ? next : prev;
+      });
     };
 
     const container = getScrollContainer();

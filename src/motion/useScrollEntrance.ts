@@ -22,7 +22,7 @@ export function useScrollEntrance({
 }: UseScrollEntranceOptions = {}) {
   const elementRef = useRef<HTMLDivElement | null>(null);
   const [hasEntered, setHasEntered] = useState(false);
-  const viewport = useMenuViewport();
+  const { getScrollContainer } = useMenuViewport();
 
   useEffect(() => {
     if (!enabled || hasEntered) return;
@@ -30,11 +30,11 @@ export function useScrollEntrance({
     if (!target) return;
 
     // Fast check if element or viewport exists
-    const scrollContainer = viewport?.getScrollContainer?.();
+    const scrollContainer = getScrollContainer();
     const root = scrollContainer instanceof HTMLElement ? scrollContainer : null;
 
     const rect = target.getBoundingClientRect();
-    const viewportHeight = root ? root.clientHeight : window.innerHeight;
+    const viewportHeight = root ? root.clientHeight : (typeof window !== 'undefined' ? window.innerHeight : 800);
     if (rect.top < viewportHeight + 150 && rect.bottom > -50) {
       setHasEntered(true);
       return;
@@ -66,7 +66,7 @@ export function useScrollEntrance({
     return () => {
       observer.disconnect();
     };
-  }, [enabled, hasEntered, threshold, rootMargin, viewport]);
+  }, [enabled, hasEntered, threshold, rootMargin, getScrollContainer]);
 
   return { elementRef, hasEntered: hasEntered || !enabled };
 }

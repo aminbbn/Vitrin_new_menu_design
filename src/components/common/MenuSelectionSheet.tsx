@@ -3,26 +3,38 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Trash2, ShoppingBag, Info, RotateCcw } from 'lucide-react';
 import { useMenuSelection } from '../../context/MenuSelectionContext';
 import { formatToman, toPersianDigits } from '../../utils/formatters';
+import { getContrastForeground } from '../../utils/colorUtils';
 import { useMenuViewport } from '../../context/MenuViewportContext';
 import { OverlayPortal } from './OverlayPortal';
 import { SafeImage } from './SafeImage';
 
 interface MenuSelectionSheetProps {
+  primaryColor?: string;
+  secondaryColor?: string;
   accentColor?: string;
   themeId?: 'immersive' | 'modern' | 'minimal';
 }
 
 export const MenuSelectionSheet: React.FC<MenuSelectionSheetProps> = ({
+  primaryColor,
+  secondaryColor,
   accentColor = '#d4af37',
   themeId = 'immersive',
 }) => {
   const { isSelectionSheetOpen } = useMenuSelection();
+  const prim = primaryColor || accentColor || 'var(--menu-primary, #D4AF37)';
+  const sec = secondaryColor || 'var(--menu-secondary, #B76E79)';
 
   return (
     <OverlayPortal>
       <AnimatePresence mode="wait">
         {isSelectionSheetOpen && (
-          <MenuSelectionSheetContent accentColor={accentColor} themeId={themeId} />
+          <MenuSelectionSheetContent
+            accentColor={accentColor}
+            primaryColor={prim}
+            secondaryColor={sec}
+            themeId={themeId}
+          />
         )}
       </AnimatePresence>
     </OverlayPortal>
@@ -31,11 +43,15 @@ export const MenuSelectionSheet: React.FC<MenuSelectionSheetProps> = ({
 
 interface MenuSelectionSheetContentProps {
   accentColor: string;
+  primaryColor: string;
+  secondaryColor: string;
   themeId: 'immersive' | 'modern' | 'minimal';
 }
 
 const MenuSelectionSheetContent: React.FC<MenuSelectionSheetContentProps> = ({
   accentColor,
+  primaryColor,
+  secondaryColor,
   themeId,
 }) => {
   const {
@@ -49,6 +65,9 @@ const MenuSelectionSheetContent: React.FC<MenuSelectionSheetContentProps> = ({
   } = useMenuSelection();
 
   const { isSimulated, overlayPresentation, registerOverlay } = useMenuViewport();
+
+  const prim = primaryColor || accentColor;
+  const primaryFg = getContrastForeground(prim);
 
   useEffect(() => {
     return registerOverlay('menu-selection-sheet');
@@ -259,11 +278,14 @@ const MenuSelectionSheetContent: React.FC<MenuSelectionSheetContentProps> = ({
                     {/* Plus Button */}
                     <button
                       onClick={() => addItem(item.id)}
-                      className="w-7 h-7 rounded-lg text-white flex items-center justify-center active:scale-95 transition-all font-bold cursor-pointer shadow-xs"
-                      style={{ backgroundColor: accentColor }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center active:scale-95 transition-all font-bold cursor-pointer shadow-xs"
+                      style={{
+                        backgroundColor: prim,
+                        color: primaryFg,
+                      }}
                       aria-label="افزایش تعداد"
                     >
-                      <Plus className="w-3.5 h-3.5 text-white stroke-[2.5]" />
+                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" style={{ stroke: primaryFg }} />
                     </button>
 
                     {/* Minus or Trash Button */}
@@ -346,8 +368,11 @@ const MenuSelectionSheetContent: React.FC<MenuSelectionSheetContentProps> = ({
             {/* Return to Menu Button */}
             <button
               onClick={() => setIsSelectionSheetOpen(false)}
-              className="w-full py-3 rounded-xl font-bold text-xs sm:text-sm text-white active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
-              style={{ backgroundColor: accentColor }}
+              className="w-full py-3 rounded-xl font-bold text-xs sm:text-sm active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer whitespace-nowrap"
+              style={{
+                backgroundColor: prim,
+                color: primaryFg,
+              }}
             >
               <span>بازگشت و ادامه مرور منو</span>
             </button>

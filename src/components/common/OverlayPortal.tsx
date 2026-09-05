@@ -12,11 +12,8 @@ export const OverlayPortal: React.FC<OverlayPortalProps> = ({ children }) => {
 
   useEffect(() => {
     const root = getOverlayRoot();
-    if (root) {
-      setMountTarget(root);
-    } else if (typeof document !== 'undefined') {
-      setMountTarget(document.body);
-    }
+    const target = root || (typeof document !== 'undefined' ? document.body : null);
+    setMountTarget((prev) => (prev !== target ? target : prev));
   }, [getOverlayRoot]);
 
   // If running in browser and target is resolved

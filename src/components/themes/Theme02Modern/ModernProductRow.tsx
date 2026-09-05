@@ -2,22 +2,29 @@ import React from 'react';
 import { Plus, Minus, Flame, Sparkles, Leaf } from 'lucide-react';
 import { MenuItem } from '../../../types/menu';
 import { formatToman, toPersianDigits } from '../../../utils/formatters';
+import { getContrastForeground } from '../../../utils/themeColors';
 import { SafeImage } from '../../common/SafeImage';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 
 interface ModernProductRowProps {
   item: MenuItem;
-  accentColor: string;
+  accentColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   onOpenDetail: (item: MenuItem) => void;
 }
 
 export const ModernProductRow: React.FC<ModernProductRowProps> = ({
   item,
-  accentColor,
+  accentColor = '#0f766e',
+  primaryColor,
+  secondaryColor,
   onOpenDetail,
 }) => {
   const { getItemQuantity, addItem, decreaseItem } = useMenuSelection();
   const quantity = getItemQuantity(item.id);
+  const prim = primaryColor || accentColor;
+  const primFg = getContrastForeground(prim);
 
   const getPrimaryBadge = () => {
     if (item.isPopular) {
@@ -69,8 +76,8 @@ export const ModernProductRow: React.FC<ModernProductRowProps> = ({
         {/* Selected quantity tag over image */}
         {quantity > 0 && (
           <div
-            className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold text-white flex items-center justify-center shadow-xs"
-            style={{ backgroundColor: accentColor }}
+            className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center shadow-xs"
+            style={{ backgroundColor: prim, color: primFg }}
           >
             {toPersianDigits(quantity)}
           </div>
@@ -145,11 +152,11 @@ export const ModernProductRow: React.FC<ModernProductRowProps> = ({
                 <button
                   type="button"
                   onClick={() => addItem(item.id)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-2xs"
-                  style={{ backgroundColor: accentColor }}
+                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-2xs"
+                  style={{ backgroundColor: prim, color: primFg }}
                   aria-label="افزایش تعداد"
                 >
-                  <Plus className="w-3 h-3 text-white stroke-[2.5]" />
+                  <Plus className="w-3 h-3 stroke-[2.5]" style={{ color: primFg }} />
                 </button>
               </div>
             )}

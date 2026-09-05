@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ThemeId, RestaurantData, MenuThemeConfig } from '../types/menu';
 import { ImmersiveTheme } from './themes/Theme01Immersive/ImmersiveTheme';
 import { ModernTheme } from './themes/Theme02Modern/ModernTheme';
 import { MinimalTheme } from './themes/Theme03Minimal/MinimalTheme';
 import { MenuSelectionProvider } from '../context/MenuSelectionContext';
+import { resolveThemeColors, getThemeCssVariables } from '../utils/themeColors';
 
 interface ThemeRendererProps {
   themeId: ThemeId;
@@ -22,13 +23,30 @@ export const ThemeRenderer: React.FC<ThemeRendererProps> = ({
   onStateChange,
   isDashboardPreview = false,
 }) => {
+  const colors = useMemo(() => resolveThemeColors(config, themeId), [config, themeId]);
+  const cssVars = useMemo(
+    () => getThemeCssVariables(colors.primary, colors.secondary),
+    [colors.primary, colors.secondary]
+  );
+
+  const resolvedConfig: MenuThemeConfig = useMemo(
+    () => ({
+      ...config,
+      primaryColor: colors.primary,
+      secondaryColor: colors.secondary,
+      accentColor: colors.primary,
+      accentColorLight: colors.secondary,
+    }),
+    [config, colors]
+  );
+
   const renderTheme = () => {
     switch (themeId) {
       case 'immersive':
         return (
           <ImmersiveTheme
             restaurant={restaurant}
-            config={config}
+            config={resolvedConfig}
             initialState={initialState}
             onStateChange={onStateChange}
             isDashboardPreview={isDashboardPreview}
@@ -38,7 +56,7 @@ export const ThemeRenderer: React.FC<ThemeRendererProps> = ({
         return (
           <ModernTheme
             restaurant={restaurant}
-            config={config}
+            config={resolvedConfig}
             initialState={initialState}
             onStateChange={onStateChange}
             isDashboardPreview={isDashboardPreview}
@@ -48,7 +66,7 @@ export const ThemeRenderer: React.FC<ThemeRendererProps> = ({
         return (
           <MinimalTheme
             restaurant={restaurant}
-            config={config}
+            config={resolvedConfig}
             initialState={initialState}
             onStateChange={onStateChange}
             isDashboardPreview={isDashboardPreview}
@@ -58,7 +76,7 @@ export const ThemeRenderer: React.FC<ThemeRendererProps> = ({
         return (
           <ImmersiveTheme
             restaurant={restaurant}
-            config={config}
+            config={resolvedConfig}
             initialState={initialState}
             onStateChange={onStateChange}
             isDashboardPreview={isDashboardPreview}
@@ -68,8 +86,11 @@ export const ThemeRenderer: React.FC<ThemeRendererProps> = ({
   };
 
   return (
-    <MenuSelectionProvider items={restaurant.items}>
-      {renderTheme()}
-    </MenuSelectionProvider>
+    <div className="w-full h-full relative" style={cssVars as React.CSSProperties}>
+      <MenuSelectionProvider items={restaurant.items}>
+        {renderTheme()}
+      </MenuSelectionProvider>
+    </div>
   );
 };
+

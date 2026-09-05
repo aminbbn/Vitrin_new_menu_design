@@ -3,25 +3,32 @@ import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { MenuItem } from '../../../types/menu';
 import { formatToman, toPersianDigits } from '../../../utils/formatters';
+import { getContrastForeground } from '../../../utils/themeColors';
 import { SafeImage } from '../../common/SafeImage';
 import { useMenuSelection } from '../../../context/MenuSelectionContext';
 
 interface VisualProductItemProps {
   item: MenuItem;
-  accentColor: string;
+  accentColor?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
   onSelect: (item: MenuItem) => void;
   index: number;
 }
 
 export const VisualProductItem: React.FC<VisualProductItemProps> = ({
   item,
-  accentColor,
+  accentColor = '#38bdf8',
+  primaryColor,
+  secondaryColor,
   onSelect,
 }) => {
   const { getItemQuantity } = useMenuSelection();
   const currentQty = getItemQuantity(item.id);
   const isSoldOut = item.availability === 'sold_out';
   const isLowStock = item.availability === 'low_stock';
+  const prim = primaryColor || accentColor;
+  const primFg = getContrastForeground(prim);
 
   // Primary badge label
   const primaryBadge = item.isSpecial
@@ -64,10 +71,10 @@ export const VisualProductItem: React.FC<VisualProductItemProps> = ({
           <div className="flex items-center gap-1.5 flex-wrap">
             {primaryBadge && !isSoldOut && (
               <span
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-white backdrop-blur-md shadow-xs border border-white/20"
-                style={{ backgroundColor: `${accentColor}cc` }}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium backdrop-blur-md shadow-xs border border-white/20"
+                style={{ backgroundColor: `${prim}e6`, color: primFg }}
               >
-                <Sparkles className="w-3 h-3 fill-white/80" />
+                <Sparkles className="w-3 h-3" style={{ fill: primFg }} />
                 <span>{primaryBadge}</span>
               </span>
             )}
@@ -90,7 +97,7 @@ export const VisualProductItem: React.FC<VisualProductItemProps> = ({
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/80 text-white backdrop-blur-md border border-white/25 shadow-md">
               <span
                 className="w-2 h-2 rounded-full inline-block"
-                style={{ backgroundColor: accentColor }}
+                style={{ backgroundColor: prim }}
               />
               <span>{toPersianDigits(currentQty)} انتخاب شده</span>
             </span>

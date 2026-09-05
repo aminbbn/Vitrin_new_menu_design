@@ -323,8 +323,11 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
     name: 'Theme 01: Immersive / Editorial',
     nameFa: 'پوسته اول — تجربه سینمایی و غوطه‌ور (Immersive Editorial)',
     descriptionFa: 'طراحی سینمایی، دارک، لوکس با تصویر تمام‌صفحه و ترنزیشن پیوسته به هدر فشرده چسبان',
-    accentColor: '#d4af37', // Gold
-    accentColorLight: '#f3e5ab',
+    primaryColor: '#D4AF37', // Gold
+    secondaryColor: '#B76E79', // Rose Gold / Warm Copper
+    accentColor: '#D4AF37', // Legacy fallback
+    accentColorLight: '#B76E79',
+    backgroundIntensity: 'balanced',
     bgColor: '#0b0f14', // Rich dark obsidian
     cardBgColor: '#121820',
     textColor: '#f8fafc',
@@ -352,8 +355,11 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
     name: 'Theme 02: Modern / Hospitality Menu Book',
     nameFa: 'پوسته دوم — بوکلت مهمان‌نوازی و کاور منو (Hospitality Gateway)',
     descriptionFa: 'کاور تمام‌صفحه با هویت برند، دروازه عمودی دسته‌بندی‌ها و مرور تخصصی اقلام منو',
-    accentColor: '#0f766e', // Deep Hospitality Teal / Evergreen
-    accentColorLight: '#ccfbf1',
+    primaryColor: '#0F766E', // Deep Hospitality Teal / Evergreen
+    secondaryColor: '#B7794B', // Warm Terracotta / Sienna
+    accentColor: '#0F766E', // Legacy fallback
+    accentColorLight: '#B7794B',
+    backgroundIntensity: 'balanced',
     bgColor: '#FAF8F5', // Warm Ivory / Paper
     cardBgColor: '#FFFFFF',
     textColor: '#1C1917', // Rich warm charcoal
@@ -381,8 +387,11 @@ export const themeConfigs: Record<string, MenuThemeConfig> = {
     name: 'Theme 03: Visual Explorer / Category-First',
     nameFa: 'پوسته سوم — کاوشگر تصویری و دسته‌بندی‌محور (Visual Category Explorer)',
     descriptionFa: 'تجربه بصری تصویرمحور، گالری مربعی دسته‌بندی‌ها و فید عکاسی عریض خوراک‌ها با تایپوگرافی تمیز',
-    accentColor: '#38bdf8', // Vibrant Sky / Cyan
-    accentColorLight: '#bae6fd',
+    primaryColor: '#38BDF8', // Vibrant Sky / Cyan
+    secondaryColor: '#A78BFA', // Soft Violet / Lavender
+    accentColor: '#38BDF8', // Legacy fallback
+    accentColorLight: '#A78BFA',
+    backgroundIntensity: 'balanced',
     bgColor: '#0d0f12', // Deep photographic dark
     cardBgColor: '#16181d',
     textColor: '#f8fafc',

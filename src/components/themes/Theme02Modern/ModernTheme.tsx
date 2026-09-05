@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { RestaurantData, MenuThemeConfig, MenuCategory, MenuItem } from '../../../types/menu';
 import { toPersianDigits } from '../../../utils/formatters';
+import { getContrastForeground } from '../../../utils/themeColors';
 import { SafeImage } from '../../common/SafeImage';
 import { useMenuViewport } from '../../../context/MenuViewportContext';
 import {
@@ -93,7 +94,10 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
     scrollToTop(false);
   };
 
-  const accentColor = config.accentColor || '#0f766e';
+  const primaryColor = config.primaryColor || config.accentColor || '#0f766e';
+  const secondaryColor = config.secondaryColor || '#b45309';
+  const primaryFg = getContrastForeground(primaryColor);
+  const accentColor = primaryColor;
   const paperBgColor = config.bgColor || '#FAF8F5';
   const textColor = config.textColor || '#1C1917';
 
@@ -161,11 +165,11 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                 }}
               />
 
-              {/* Delicate Accent Color Radiance */}
+              {/* Delicate Dual Brand Color Radiance */}
               <div
                 className="absolute inset-0 pointer-events-none opacity-20"
                 style={{
-                  background: `radial-gradient(circle at 50% 20%, ${accentColor} 0%, transparent 70%)`,
+                  background: `radial-gradient(circle at 35% 20%, ${primaryColor} 0%, transparent 65%), radial-gradient(circle at 75% 75%, ${secondaryColor} 0%, transparent 60%)`,
                 }}
               />
             </div>
@@ -390,11 +394,12 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                         }}
                         className={`px-3.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                           isActive
-                            ? 'text-white shadow-xs font-semibold'
+                            ? 'shadow-xs font-semibold'
                             : 'bg-white text-stone-600 hover:text-stone-900 border border-stone-200/80 hover:border-stone-300'
                         }`}
                         style={{
-                          backgroundColor: isActive ? accentColor : undefined,
+                          backgroundColor: isActive ? primaryColor : undefined,
+                          color: isActive ? primaryFg : undefined,
                         }}
                       >
                         {category.name}
@@ -420,7 +425,7 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                   <div className="flex items-center gap-2">
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: accentColor }}
+                      style={{ backgroundColor: primaryColor }}
                     />
                     <h2 className="font-bold text-base sm:text-xl text-stone-900 tracking-tight">
                       {activeCategory.name}
@@ -430,8 +435,8 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                   <span
                     className="text-xs px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap"
                     style={{
-                      backgroundColor: `${accentColor}15`,
-                      color: accentColor,
+                      backgroundColor: `${primaryColor}15`,
+                      color: primaryColor,
                     }}
                   >
                     {toPersianDigits(categoryItems.length)} خوراک
@@ -463,7 +468,9 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
                   <EntranceItem key={item.id}>
                     <ModernProductRow
                       item={item}
-                      accentColor={accentColor}
+                      accentColor={primaryColor}
+                      primaryColor={primaryColor}
+                      secondaryColor={secondaryColor}
                       onOpenDetail={(product) => setSelectedProductForDetail(product)}
                     />
                   </EntranceItem>
@@ -499,7 +506,9 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
         isOpen={!!selectedProductForDetail}
         onClose={() => setSelectedProductForDetail(null)}
         item={selectedProductForDetail}
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="modern"
       />
 
@@ -514,25 +523,33 @@ export const ModernTheme: React.FC<ModernThemeProps> = ({
           setActiveCategoryId(catId);
           scrollToTop(true);
         }}
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="modern"
       />
 
       {/* 3. Floating Selection Sticky Bar */}
       <MenuSelectionBar
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="modern"
       />
 
       {/* 4. Selection Items Drawer / Sheet */}
       <MenuSelectionSheet
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="modern"
       />
 
       {/* 5. Scroll to Top Floating Button */}
       <ScrollToTopButton
-        accentColor={accentColor}
+        accentColor={primaryColor}
+        primaryColor={primaryColor}
+        secondaryColor={secondaryColor}
         themeId="modern"
       />
     </div>
